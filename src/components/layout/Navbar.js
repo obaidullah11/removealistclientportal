@@ -115,7 +115,7 @@ export default function Navbar() {
                   </Button>
                 </Link>
                 <Link to="/signup">
-                  <Button className="bg-primary-600 hover:bg-primary-700 text-white font-medium px-6">
+                  <Button className="bg-sustainableGreen hover:bg-sustainableGreen text-white font-medium px-6">
                     Get Started
                   </Button>
                 </Link>

@@ -25,14 +25,11 @@ const Hero = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <div className="inline-flex items-center gap-2 bg-primary-50 px-4 py-2 rounded-full mb-6">
-              <span className="text-2xl">🚚</span>
-              <span className="text-primary-700 font-medium">#1 Moving Platform in Australia</span>
-            </div>
+            
 
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
               AI-Powered,{' '}
-              <span className="bg-gradient-to-r from-primary-500 to-primary-700 bg-clip-text text-transparent">
+              <span className="bg-[#009A64] bg-clip-text text-transparent">
                 Sustainable
               </span>{' '}
               Moving Solutions
@@ -47,7 +44,7 @@ const Hero = () => {
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-lg font-medium hover:from-primary-600 hover:to-primary-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+                className="flex items-center justify-center gap-2 px-6 py-3 bg-[#009A64] text-white rounded-lg font-medium hover:from-primary-600 hover:to-primary-700 transition-all duration-200 shadow-lg hover:shadow-xl"
               >
                 <ArrowRight className="w-5 h-5" />
                 Start Your Move
