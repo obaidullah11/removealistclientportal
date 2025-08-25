@@ -51,10 +51,10 @@ export default function Signup() {
         {/* Logo */}
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center space-x-3">
-            <div className="w-12 h-12 bg-gradient-to-r from-primary-500 to-primary-600 rounded-2xl flex items-center justify-center shadow-xl">
-              <span className="text-white font-bold text-xl">RL</span>
-            </div>
-            <span className="font-bold text-2xl text-gray-900">RemoveList</span>
+            
+             <img src="/images/logo.png" alt="logo" className="w-25 h-12" />
+           
+            
           </Link>
         </div>
         

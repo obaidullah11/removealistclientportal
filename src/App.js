@@ -1,6 +1,7 @@
 import React from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
-
+import { AuthProvider } from './contexts/AuthContext'
+import ProtectedRoute from './components/ProtectedRoute'
 
 // Layout Components
 import Navbar from './components/layout/Navbar'
@@ -16,6 +17,7 @@ import Footer from './components/Footer'
 
 // Auth Pages
 import Login from './pages/auth/Login'
+import Signup from './pages/auth/Signup'
 
 // Moving Platform Pages
 import CreateMove from './pages/move/CreateMove'
@@ -52,46 +54,58 @@ function AppLayout({ children }) {
 
 function App() {
   return (
-    <Router>
-      <div className="App">
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Login />} />
-          
-          {/* Protected Routes with App Layout */}
-          <Route path="/move" element={
-            <AppLayout>
-              <CreateMove />
-            </AppLayout>
-          } />
-          <Route path="/timeline" element={
-            <AppLayout>
-              <Timeline />
-            </AppLayout>
-          } />
-          <Route path="/checklist" element={
-            <AppLayout>
-              <Checklist />
-            </AppLayout>
-          } />
-          <Route path="/tips" element={
-            <AppLayout>
-              <Tips />
-            </AppLayout>
-          } />
-          <Route path="/inventory" element={
-            <AppLayout>
-              <Inventory />
-            </AppLayout>
-          } />
-          
-          {/* Redirect unknown routes to landing */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </div>
-    </Router>
+    <AuthProvider>
+      <Router>
+        <div className="App">
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            
+            {/* Protected Routes with App Layout */}
+            <Route path="/move" element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <CreateMove />
+                </AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/timeline" element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <Timeline />
+                </AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/checklist" element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <Checklist />
+                </AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/tips" element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <Tips />
+                </AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/inventory" element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <Inventory />
+                </AppLayout>
+              </ProtectedRoute>
+            } />
+            
+            {/* Redirect unknown routes to landing */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </div>
+      </Router>
+    </AuthProvider>
   )
 }
 

@@ -20,13 +20,13 @@ const HowItWorks = () => {
       number: '3',
       icon: FileText,
       title: 'Get Quotes',
-      description: 'Receive instant quotes from verified partners. Compare prices and services easily.',
+      description: 'Receive  quotes from verified partners.',
     },
     {
       number: '4',
       icon: Truck,
       title: 'Move Day',
-      description: 'Track your move in real-time, manage tasks, and enjoy a stress-free relocation.',
+      description: 'Manage tasks, and enjoy a stress-free relocation.',
     },
   ];
 

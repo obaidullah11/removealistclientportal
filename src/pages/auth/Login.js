@@ -1,13 +1,18 @@
 import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Eye, EyeOff, Mail, Lock, Phone, ArrowRight } from 'lucide-react'
 import { Button } from '../../components/ui/button'
 import { Input } from '../../components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs'
+import { useAuth } from '../../contexts/AuthContext'
 
 export default function Login() {
+  const { login } = useAuth()
+  const navigate = useNavigate()
+  const location = useLocation()
+
   const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState({
     email: '',
@@ -18,14 +23,33 @@ export default function Login() {
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    // Mock login - redirect to main app
-    console.log('Login attempt:', formData)
-    window.location.href = '/move'
+    // Mock login - create user data
+    const userData = {
+      id: Date.now(),
+      email: formData.email || formData.phone,
+      name: 'User',
+      phone: formData.phone
+    }
+    
+    login(userData)
+    
+    // Redirect to intended destination or default to /move
+    const from = location.state?.from?.pathname || '/move'
+    navigate(from, { replace: true })
   }
 
   const handleSocialLogin = (provider) => {
     console.log(`Login with ${provider}`)
-    window.location.href = '/move'
+    // Mock social login
+    const userData = {
+      id: Date.now(),
+      email: `user@${provider}.com`,
+      name: `${provider} User`,
+      provider
+    }
+    
+    login(userData)
+    navigate('/move', { replace: true })
   }
 
   const sendOTP = () => {
@@ -39,13 +63,10 @@ export default function Login() {
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-8"
+          className="text-center mb-2"
         >
           <Link to="/" className="inline-flex items-center space-x-3">
-            <div className="w-12 h-12 bg-gradient-to-r from-primary-500 to-primary-600 rounded-2xl flex items-center justify-center shadow-xl">
-              <span className="text-white font-bold text-xl">RL</span>
-            </div>
-            <span className="font-bold text-2xl text-gray-900">RemoveList</span>
+           <img src="/images/logo.png" alt="logo" className="w-25 h-12" />
           </Link>
         </motion.div>
 

@@ -12,7 +12,8 @@ import {
   Heart, 
   DollarSign,
   Sparkles,
-  Check
+  Check,
+  Image // Added Image import
 } from 'lucide-react'
 import { Button } from '../../components/ui/button'
 import { Input } from '../../components/ui/input'
@@ -31,34 +32,20 @@ const steps = [
   },
   { 
     id: 2, 
-    title: 'Where are you moving?', 
-    subtitle: 'Tell us your current and new addresses',
+    title: 'Move Details', 
+    subtitle: 'Addresses, property types, and ownership details',
     icon: MapPin,
     color: 'from-green-500 to-green-600',
   },
   { 
     id: 3, 
-    title: 'Upload your floor plan', 
-    subtitle: 'Help our AI understand your space',
-    icon: Upload,
-    color: 'from-purple-500 to-purple-600'
-  },
-  { 
-    id: 4, 
-    title: 'About your home', 
-    subtitle: 'Property details and ownership',
-    icon: Home,
-    color: 'from-orange-500 to-orange-600'
-  },
-  { 
-    id: 5, 
     title: 'Who\'s moving with you?', 
     subtitle: 'Family members and special considerations',
     icon: Users,
     color: 'from-pink-500 to-pink-600'
   },
   { 
-    id: 6, 
+    id: 4, 
     title: 'What\'s your budget?', 
     subtitle: 'Help us recommend the right services',
     icon: DollarSign,
@@ -72,11 +59,15 @@ export default function CreateMove() {
     moveDate: '',
     fromAddress: '',
     toAddress: '',
-    floorPlan: null,
-    apartmentType: '',
-    ownershipType: '',
+    currentPropertyType: '',
+    newPropertyType: '',
+    currentOwnershipType: '',
+    newOwnershipType: '',
+    currentFloorPlan: null,
+    newFloorPlan: null,
     hasChildren: false,
     hasPets: false,
+    hasMovers: false, // Added movers toggle
     budget: ''
   })
   
@@ -125,10 +116,25 @@ export default function CreateMove() {
     setShowToSuggestions(false)
   }
 
-  const handleFileUpload = (e) => {
-    const file = e.target.files[0]
+  const handleFileUpload = (field, file) => {
+    setFormData(prev => ({ ...prev, [field]: file }))
+  }
+
+  const handleDrop = (field, e) => {
+    e.preventDefault()
+    const file = e.dataTransfer.files[0]
     if (file) {
-      setFormData({ ...formData, floorPlan: file })
+      handleFileUpload(field, file)
+    }
+  }
+
+  const handleDragOver = (e) => {
+    e.preventDefault()
+  }
+
+  const handleFileInput = (field, file) => {
+    if (file) {
+      setFormData(prev => ({ ...prev, [field]: file }))
     }
   }
 
@@ -197,222 +203,275 @@ export default function CreateMove() {
             exit="exit"
             className="space-y-8"
           >
+            {/* Header with teal moving truck icon */}
             <div className="text-center">
-              <div className={`w-20 h-20 bg-gradient-to-r ${currentStepData.color} rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl`}>
-                <MapPin className="h-10 w-10 text-white" />
+              <div className="w-16 h-16 bg-teal-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                </svg>
               </div>
-              <h2 className="text-3xl font-bold mb-3">{currentStepData.title}</h2>
-              <p className="text-gray-600 text-lg">{currentStepData.subtitle}</p>
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">{currentStepData.title}</h2>
+              <p className="text-lg text-gray-600">{currentStepData.subtitle}</p>
             </div>
-            <div className="space-y-6 max-w-lg mx-auto">
-              <div className="relative">
-                <label className="block text-sm font-semibold text-gray-700 mb-3">Current Address</label>
-                <div className="relative">
-                  <MapPin className="absolute left-4 top-4 h-5 w-5 text-gray-400" />
-                  <Input
-                    placeholder="Enter your current address"
-                    className="pl-12 h-14 text-base"
-                    value={formData.fromAddress}
-                    onChange={(e) => handleAddressSearch(e.target.value, 'fromAddress')}
-                  />
+            
+            {/* Two-column layout for addresses and property details */}
+            <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto">
+              {/* Current Location Section */}
+              <div className="space-y-6">
+                <h3 className="text-xl font-bold text-gray-900">Current Location</h3>
+                
+                {/* Address Input */}
+                <div className="space-y-4">
+                  <label className="block text-sm font-semibold text-gray-700">Address</label>
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+                    <Input
+                      placeholder="Enter your current address"
+                      className="pl-11 h-12 text-base"
+                      value={formData.fromAddress}
+                      onChange={(e) => handleAddressSearch(e.target.value, 'fromAddress')}
+                    />
+                  </div>
+                  {showFromSuggestions && addressSuggestionsList.length > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="absolute z-10 w-full bg-white border border-gray-200 rounded-xl mt-2 shadow-xl max-h-48 overflow-y-auto"
+                    >
+                      {addressSuggestionsList.map((address, index) => (
+                        <button
+                          key={index}
+                          className="w-full text-left px-4 py-3 hover:bg-gray-50 border-b last:border-b-0 transition-colors"
+                          onClick={() => selectAddress(address, 'fromAddress')}
+                        >
+                          <div className="flex items-center space-x-2">
+                            <MapPin className="h-4 w-4 text-gray-400" />
+                            <span className="text-sm">{address}</span>
+                          </div>
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
                 </div>
-                {showFromSuggestions && addressSuggestionsList.length > 0 && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="absolute z-10 w-full bg-white border border-gray-200 rounded-xl mt-2 shadow-xl max-h-48 overflow-y-auto"
-                  >
-                    {addressSuggestionsList.map((address, index) => (
+
+                {/* Property Type for Current Location */}
+                <div className="space-y-3">
+                  <label className="block text-sm font-semibold text-gray-700">Property Type</label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { value: 'apartment', emoji: '🏢', label: 'Apartment' },
+                      { value: 'house', emoji: '🏠', label: 'House' }
+                    ].map((option) => (
                       <button
-                        key={index}
-                        className="w-full text-left px-4 py-3 hover:bg-gray-50 border-b last:border-b-0 transition-colors"
-                        onClick={() => selectAddress(address, 'fromAddress')}
+                        key={option.value}
+                        type="button"
+                        className={`p-4 border-2 rounded-xl text-center transition-all hover:scale-105 ${
+                          formData.currentPropertyType === option.value 
+                            ? 'border-teal-500 bg-teal-50 shadow-lg' 
+                            : 'border-gray-200 hover:border-gray-300 bg-white'
+                        }`}
+                        onClick={() => setFormData({ ...formData, currentPropertyType: option.value })}
                       >
-                        <div className="flex items-center space-x-2">
-                          <MapPin className="h-4 w-4 text-gray-400" />
-                          <span className="text-sm">{address}</span>
-                        </div>
+                        <div className="text-2xl mb-2">{option.emoji}</div>
+                        <div className="font-semibold text-gray-900 text-sm">{option.label}</div>
                       </button>
                     ))}
-                  </motion.div>
-                )}
+                  </div>
+                </div>
+
+                {/* Ownership for Current Location */}
+                <div className="space-y-3">
+                  <label className="block text-sm font-semibold text-gray-700">Ownership</label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { value: 'renting', emoji: '🔑', label: 'Renting' },
+                      { value: 'owner', emoji: '🏡', label: 'Owner' }
+                    ].map((option) => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        className={`p-4 border-2 rounded-xl text-center transition-all hover:scale-105 ${
+                          formData.currentOwnershipType === option.value 
+                            ? 'border-teal-500 bg-teal-50 shadow-lg' 
+                            : 'border-gray-200 hover:border-gray-300 bg-white'
+                        }`}
+                        onClick={() => setFormData({ ...formData, currentOwnershipType: option.value })}
+                      >
+                        <div className="text-2xl mb-2">{option.emoji}</div>
+                        <div className="font-semibold text-gray-900 text-sm">{option.label}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Floor Plan Upload for Current Location */}
+                <div className="space-y-3">
+                  <label className="block text-sm font-semibold text-gray-700">Floor Plan (Optional)</label>
+                  <div
+                    className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+                      formData.currentFloorPlan 
+                        ? 'border-teal-500 bg-teal-50' 
+                        : 'border-gray-300 hover:border-gray-400'
+                    }`}
+                    onDrop={(e) => handleDrop('currentFloorPlan', e)}
+                    onDragOver={handleDragOver}
+                  >
+                    <input
+                      type="file"
+                      id="current-floor-plan"
+                      className="hidden"
+                      accept=".png,.jpg,.jpeg,.pdf"
+                      onChange={(e) => handleFileInput('currentFloorPlan', e.target.files[0])}
+                    />
+                    <label htmlFor="current-floor-plan" className="cursor-pointer">
+                      <div className="space-y-3">
+                        <div className="flex justify-center">
+                          <Image className="h-12 w-12 text-gray-400" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">
+                            {formData.currentFloorPlan ? formData.currentFloorPlan.name : 'Drop your floor plan here'}
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            PNG, JPG, PDF up to 10MB
+                          </p>
+                        </div>
+                      </div>
+                    </label>
+                  </div>
+                </div>
               </div>
               
-              <div className="relative">
-                <label className="block text-sm font-semibold text-gray-700 mb-3">New Address</label>
-                <div className="relative">
-                  <MapPin className="absolute left-4 top-4 h-5 w-5 text-gray-400" />
-                  <Input
-                    placeholder="Enter your new address"
-                    className="pl-12 h-14 text-base"
-                    value={formData.toAddress}
-                    onChange={(e) => handleAddressSearch(e.target.value, 'toAddress')}
-                  />
+              {/* New Location Section */}
+              <div className="space-y-6">
+                <h3 className="text-xl font-bold text-gray-900">New Location</h3>
+                
+                {/* Address Input */}
+                <div className="space-y-4">
+                  <label className="block text-sm font-semibold text-gray-700">Address</label>
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+                    <Input
+                      placeholder="Enter your new address"
+                      className="pl-11 h-12 text-base"
+                      value={formData.toAddress}
+                      onChange={(e) => handleAddressSearch(e.target.value, 'toAddress')}
+                    />
+                  </div>
+                  {showToSuggestions && addressSuggestionsList.length > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="absolute z-10 w-full bg-white border border-gray-200 rounded-xl mt-2 shadow-xl max-h-48 overflow-y-auto"
+                    >
+                      {addressSuggestionsList.map((address, index) => (
+                        <button
+                          key={index}
+                          className="w-full text-left px-4 py-3 hover:bg-gray-50 border-b last:border-b-0 transition-colors"
+                          onClick={() => selectAddress(address, 'toAddress')}
+                        >
+                          <div className="flex items-center space-x-2">
+                            <MapPin className="h-4 w-4 text-gray-400" />
+                            <span className="text-sm">{address}</span>
+                          </div>
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
                 </div>
-                {showToSuggestions && addressSuggestionsList.length > 0 && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="absolute z-10 w-full bg-white border border-gray-200 rounded-xl mt-2 shadow-xl max-h-48 overflow-y-auto"
-                  >
-                    {addressSuggestionsList.map((address, index) => (
+
+                {/* Property Type for New Location */}
+                <div className="space-y-3">
+                  <label className="block text-sm font-semibold text-gray-700">Property Type</label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { value: 'apartment', emoji: '🏢', label: 'Apartment' },
+                      { value: 'house', emoji: '🏠', label: 'House' }
+                    ].map((option) => (
                       <button
-                        key={index}
-                        className="w-full text-left px-4 py-3 hover:bg-gray-50 border-b last:border-b-0 transition-colors"
-                        onClick={() => selectAddress(address, 'toAddress')}
+                        key={option.value}
+                        type="button"
+                        className={`p-4 border-2 rounded-xl text-center transition-all hover:scale-105 ${
+                          formData.newPropertyType === option.value 
+                            ? 'border-teal-500 bg-teal-50 shadow-lg' 
+                            : 'border-gray-200 hover:border-gray-300 bg-white'
+                        }`}
+                        onClick={() => setFormData({ ...formData, newPropertyType: option.value })}
                       >
-                        <div className="flex items-center space-x-2">
-                          <MapPin className="h-4 w-4 text-gray-400" />
-                          <span className="text-sm">{address}</span>
-                        </div>
+                        <div className="text-2xl mb-2">{option.emoji}</div>
+                        <div className="font-semibold text-gray-900 text-sm">{option.label}</div>
                       </button>
                     ))}
-                  </motion.div>
-                )}
+                  </div>
+                </div>
+
+                {/* Ownership for New Location */}
+                <div className="space-y-3">
+                  <label className="block text-sm font-semibold text-gray-700">Ownership</label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { value: 'renting', emoji: '🔑', label: 'Renting' },
+                      { value: 'owner', emoji: '🏡', label: 'Owner' }
+                    ].map((option) => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        className={`p-4 border-2 rounded-xl text-center transition-all hover:scale-105 ${
+                          formData.newOwnershipType === option.value 
+                            ? 'border-teal-500 bg-teal-50 shadow-lg' 
+                            : 'border-gray-200 hover:border-gray-300 bg-white'
+                        }`}
+                        onClick={() => setFormData({ ...formData, newOwnershipType: option.value })}
+                      >
+                        <div className="text-2xl mb-2">{option.emoji}</div>
+                        <div className="font-semibold text-gray-900 text-sm">{option.label}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Floor Plan Upload for New Location */}
+                <div className="space-y-3">
+                  <label className="block text-sm font-semibold text-gray-700">Floor Plan (Optional)</label>
+                  <div
+                    className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+                      formData.newFloorPlan 
+                        ? 'border-teal-500 bg-teal-50' 
+                        : 'border-gray-300 hover:border-gray-400'
+                    }`}
+                    onDrop={(e) => handleDrop('newFloorPlan', e)}
+                    onDragOver={handleDragOver}
+                  >
+                    <input
+                      type="file"
+                      id="new-floor-plan"
+                      className="hidden"
+                      accept=".png,.jpg,.jpeg,.pdf"
+                      onChange={(e) => handleFileInput('newFloorPlan', e.target.files[0])}
+                    />
+                    <label htmlFor="new-floor-plan" className="cursor-pointer">
+                      <div className="space-y-3">
+                        <div className="flex justify-center">
+                          <Image className="h-12 w-12 text-gray-400" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">
+                            {formData.newFloorPlan ? formData.newFloorPlan.name : 'Drop your floor plan here'}
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            PNG, JPG, PDF up to 10MB
+                          </p>
+                        </div>
+                      </div>
+                    </label>
+                  </div>
+                </div>
               </div>
             </div>
           </motion.div>
         )
       
       case 3:
-        return (
-          <motion.div
-            variants={stepVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            className="space-y-8"
-          >
-            <div className="text-center">
-              <div className={`w-20 h-20 bg-gradient-to-r ${currentStepData.color} rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl`}>
-                <Upload className="h-10 w-10 text-white" />
-              </div>
-              <h2 className="text-3xl font-bold mb-3">{currentStepData.title}</h2>
-              <p className="text-gray-600 text-lg">{currentStepData.subtitle}</p>
-            </div>
-            <div className="max-w-lg mx-auto space-y-6">
-              <div className="relative border-2 border-dashed border-primary-200 rounded-2xl p-12 text-center bg-gradient-to-br from-primary-50 to-white hover:border-primary-300 transition-colors">
-                {formData.floorPlan ? (
-                  <motion.div
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    className="space-y-3"
-                  >
-                    <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto">
-                      <Check className="h-8 w-8 text-green-600" />
-                    </div>
-                    <p className="text-lg font-semibold text-gray-900">{formData.floorPlan.name}</p>
-                    <p className="text-sm text-gray-600">
-                      {(formData.floorPlan.size / 1024 / 1024).toFixed(2)} MB uploaded
-                    </p>
-                  </motion.div>
-                ) : (
-                  <div className="space-y-4">
-                    <div className="w-16 h-16 bg-primary-100 rounded-2xl flex items-center justify-center mx-auto">
-                      <Upload className="h-8 w-8 text-primary-600" />
-                    </div>
-                    <div>
-                      <p className="text-lg font-semibold text-gray-900 mb-2">Drop your floor plan here</p>
-                      <p className="text-sm text-gray-600">PNG, JPG, PDF up to 10MB</p>
-                    </div>
-                  </div>
-                )}
-                <input
-                  type="file"
-                  accept=".png,.jpg,.jpeg,.pdf"
-                  onChange={handleFileUpload}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                />
-              </div>
-              
-              {formData.floorPlan && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                >
-                  <Button 
-                    onClick={generateRooms} 
-                    className="w-full h-14 text-base font-semibold ai-generate-btn" 
-                    variant="glow"
-                  >
-                    <Sparkles className="mr-2 h-5 w-5" />
-                    ✨ AI Generate Rooms
-                  </Button>
-                </motion.div>
-              )}
-            </div>
-          </motion.div>
-        )
-      
-      case 4:
-        return (
-          <motion.div
-            variants={stepVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            className="space-y-8"
-          >
-            <div className="text-center">
-              <div className={`w-20 h-20 bg-gradient-to-r ${currentStepData.color} rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl`}>
-                <Home className="h-10 w-10 text-white" />
-              </div>
-              <h2 className="text-3xl font-bold mb-3">{currentStepData.title}</h2>
-              <p className="text-gray-600 text-lg">{currentStepData.subtitle}</p>
-            </div>
-            <div className="max-w-lg mx-auto space-y-8">
-              <div>
-                <label className="block text-lg font-semibold text-gray-700 mb-4">Property Type</label>
-                <div className="grid grid-cols-2 gap-4">
-                  {[
-                    { value: 'apartment', emoji: '🏢', label: 'Apartment', desc: 'Condo or apartment unit' },
-                    { value: 'house', emoji: '🏠', label: 'House', desc: 'Single family home' }
-                  ].map((option) => (
-                    <button
-                      key={option.value}
-                      className={`p-6 border-2 rounded-2xl text-center transition-all hover:scale-105 ${
-                        formData.apartmentType === option.value 
-                          ? 'border-primary-500 bg-primary-50 shadow-lg' 
-                          : 'border-gray-200 hover:border-gray-300 bg-white'
-                      }`}
-                      onClick={() => setFormData({ ...formData, apartmentType: option.value })}
-                    >
-                      <div className="text-4xl mb-3">{option.emoji}</div>
-                      <div className="font-semibold text-gray-900">{option.label}</div>
-                      <div className="text-sm text-gray-600 mt-1">{option.desc}</div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-              
-              <div>
-                <label className="block text-lg font-semibold text-gray-700 mb-4">Ownership</label>
-                <div className="grid grid-cols-2 gap-4">
-                  {[
-                    { value: 'renting', emoji: '🔑', label: 'Renting', desc: 'Tenant or renter' },
-                    { value: 'owner', emoji: '🏡', label: 'Owner', desc: 'Own the property' }
-                  ].map((option) => (
-                    <button
-                      key={option.value}
-                      className={`p-6 border-2 rounded-2xl text-center transition-all hover:scale-105 ${
-                        formData.ownershipType === option.value 
-                          ? 'border-primary-500 bg-primary-50 shadow-lg' 
-                          : 'border-gray-200 hover:border-gray-300 bg-white'
-                      }`}
-                      onClick={() => setFormData({ ...formData, ownershipType: option.value })}
-                    >
-                      <div className="text-4xl mb-3">{option.emoji}</div>
-                      <div className="font-semibold text-gray-900">{option.label}</div>
-                      <div className="text-sm text-gray-600 mt-1">{option.desc}</div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        )
-      
-      case 5:
         return (
           <motion.div
             variants={stepVariants}
@@ -481,14 +540,45 @@ export default function CreateMove() {
                 </div>
               </Card>
 
-              {(formData.hasChildren || formData.hasPets) && (
+              <Card className="p-6 border-2 hover:border-primary-200 transition-colors">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <div className="w-12 h-12 bg-green-100 rounded-2xl flex items-center justify-center">
+                      <svg className="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </div>
+                    <div>
+                      <div className="font-semibold text-gray-900">Moving with Movers</div>
+                      <div className="text-sm text-gray-600">Professional moving services</div>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setFormData({ ...formData, hasMovers: !formData.hasMovers })}
+                    className={`w-12 h-6 rounded-full border-2 transition-colors ${
+                      formData.hasMovers 
+                        ? 'bg-primary-600 border-primary-600' 
+                        : 'bg-gray-200 border-gray-300'
+                    }`}
+                  >
+                    <div className={`w-5 h-5 rounded-full bg-white shadow transition-transform ${
+                      formData.hasMovers ? 'translate-x-6' : 'translate-x-0'
+                    }`} />
+                  </button>
+                </div>
+              </Card>
+
+              {(formData.hasChildren || formData.hasPets || formData.hasMovers) && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   className="bg-primary-50 p-4 rounded-xl border border-primary-200"
                 >
                   <p className="text-sm text-primary-700 font-medium">
-                    Great! We'll include family-friendly tips and services in your moving plan. 👨‍👩‍👧‍👦
+                    Great! We'll include specialized services and tips in your moving plan. 
+                    {formData.hasMovers && ' 🚚 Professional movers will be prioritized.'}
+                    {formData.hasChildren && ' 👨‍👩‍👧‍👦 Family-friendly considerations included.'}
+                    {formData.hasPets && ' 🐾 Pet-safe moving services added.'}
                   </p>
                 </motion.div>
               )}
@@ -496,7 +586,7 @@ export default function CreateMove() {
           </motion.div>
         )
       
-      case 6:
+      case 4:
         return (
           <motion.div
             variants={stepVariants}
