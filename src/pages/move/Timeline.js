@@ -1,11 +1,12 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { CheckCircle2, Clock, Calendar, AlertCircle, Star, ArrowRight } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card'
 import { Button } from '../../components/ui/button'
 import { Progress } from '../../components/ui/progress'
-import { mockTimelineEvents, mockMovingProject } from '../../data/mockData'
 import { formatDate, calculateDaysUntil } from '../../lib/utils'
+import { timelineAPI, moveAPI } from '../../lib/api'
+import { showSuccess, showError } from '../../lib/snackbar'
 
 const categoryColors = {
   logistics: 'from-blue-500 to-blue-600',
@@ -28,16 +29,51 @@ const categoryIcons = {
 }
 
 export default function Timeline() {
-  const [completedTasks, setCompletedTasks] = useState(
-    mockTimelineEvents.filter(task => task.completed)
-  )
+  const [timelineEvents, setTimelineEvents] = useState([])
+  const [currentMove, setCurrentMove] = useState(null)
+  const [loading, setLoading] = useState(true)
   
-  const moveDate = new Date(mockMovingProject.moveDate)
+  const moveDate = currentMove ? new Date(currentMove.move_date) : new Date()
   const today = new Date()
-  const daysUntilMove = calculateDaysUntil(mockMovingProject.moveDate)
-  const totalTasks = mockTimelineEvents.length
-  const completedCount = completedTasks.length
-  const progress = (completedCount / totalTasks) * 100
+  const daysUntilMove = currentMove ? calculateDaysUntil(currentMove.move_date) : 0
+  const totalTasks = timelineEvents.length
+  const completedCount = timelineEvents.filter(task => task.completed).length
+  const progress = totalTasks > 0 ? (completedCount / totalTasks) * 100 : 0
+
+  // Load timeline data on component mount
+  useEffect(() => {
+    loadTimelineData()
+  }, [])
+
+  const loadTimelineData = async () => {
+    try {
+      setLoading(true)
+      
+      // Get user's moves first
+      const movesResponse = await moveAPI.getUserMoves()
+      if (!movesResponse.success || !movesResponse.data || movesResponse.data.length === 0) {
+        showError('No moves found. Please create a move first.')
+        return
+      }
+      
+      // Use the first move (or you could let user select)
+      const move = movesResponse.data[0]
+      setCurrentMove(move)
+      
+      // Get timeline events for this move
+      const timelineResponse = await timelineAPI.getTimelineEvents(move.id)
+      if (timelineResponse.success) {
+        setTimelineEvents(timelineResponse.data || [])
+      } else {
+        showError('Failed to load timeline events')
+      }
+    } catch (error) {
+      console.error('Error loading timeline data:', error)
+      showError('Failed to load timeline data')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const getTaskDate = (daysFromMove) => {
     const taskDate = new Date(moveDate)
@@ -53,49 +89,106 @@ export default function Timeline() {
     return 'upcoming'
   }
 
-  const toggleTask = (taskId) => {
-    const task = mockTimelineEvents.find(t => t.id === taskId)
-    if (task && !task.completed) {
-      task.completed = true
-      setCompletedTasks([...completedTasks, task])
+  const toggleTask = async (taskId) => {
+    try {
+      const task = timelineEvents.find(t => t.id === taskId)
+      if (!task || task.completed) return
+      
+      const response = await timelineAPI.updateTaskStatus(taskId, true)
+      if (response.success) {
+        // Update local state
+        setTimelineEvents(prev => 
+          prev.map(t => t.id === taskId ? { ...t, completed: true } : t)
+        )
+        showSuccess('Task marked as completed!')
+      } else {
+        showError('Failed to update task status')
+      }
+    } catch (error) {
+      console.error('Error updating task:', error)
+      showError('Failed to update task status')
     }
   }
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading your timeline...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!currentMove) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">No Move Found</h2>
+          <p className="text-gray-600 mb-6">Please create a move first to view your timeline.</p>
+          <Button onClick={() => window.location.href = '/my-move'}>
+            Create Move
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="min-h-screen bg-white">
-      {/* Hero Section */}
-      <div className="bg-gradient-to-r from-primary-600 to-primary-700 text-white">
-        <div className="max-w-7xl mx-auto px-4 py-12">
+    <div className="bg-white">
+      {/* Hero Section - Landing Page Style */}
+      <section className="relative py-20 overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 -z-10">
+          <div className="absolute top-0 left-0 w-96 h-96 bg-primary-100 rounded-full opacity-50 blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
+          <div className="absolute bottom-0 right-0 w-96 h-96 bg-primary-200 rounded-full opacity-30 blur-3xl translate-x-1/2 translate-y-1/2"></div>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="text-center"
           >
-            <h1 className="text-4xl font-bold mb-4">Your Moving Timeline</h1>
-            <p className="text-xl text-primary-100 mb-8">
+            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Your Moving Timeline</h1>
+            <p className="text-xl text-gray-600 mb-8">
               Your personalized roadmap to a stress-free move
             </p>
             
-            {/* Countdown */}
-            <div className="inline-flex items-center space-x-6 bg-white/10 backdrop-blur-sm rounded-2xl p-6">
-              <div className="text-center">
-                <div className="text-3xl font-bold">{daysUntilMove}</div>
-                <div className="text-sm text-primary-100">days to go</div>
-              </div>
-              <div className="w-px h-12 bg-white/20"></div>
-              <div className="text-center">
-                <div className="text-3xl font-bold">{Math.round(progress)}%</div>
-                <div className="text-sm text-primary-100">complete</div>
-              </div>
-              <div className="w-px h-12 bg-white/20"></div>
-              <div className="text-center">
-                <div className="text-3xl font-bold">{completedCount}/{totalTasks}</div>
-                <div className="text-sm text-primary-100">tasks done</div>
-              </div>
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-2xl mx-auto">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="bg-white rounded-2xl p-6 shadow-lg"
+              >
+                <div className="text-3xl font-bold text-primary-600">{daysUntilMove}</div>
+                <div className="text-sm text-gray-600">days to go</div>
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="bg-white rounded-2xl p-6 shadow-lg"
+              >
+                <div className="text-3xl font-bold text-primary-600">{Math.round(progress)}%</div>
+                <div className="text-sm text-gray-600">complete</div>
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="bg-white rounded-2xl p-6 shadow-lg"
+              >
+                <div className="text-3xl font-bold text-primary-600">{completedCount}/{totalTasks}</div>
+                <div className="text-sm text-gray-600">tasks done</div>
+              </motion.div>
             </div>
           </motion.div>
         </div>
-      </div>
+      </section>
 
       {/* Progress Overview */}
       <div className="max-w-4xl mx-auto px-4 py-8">
@@ -132,7 +225,7 @@ export default function Timeline() {
           <div className="absolute left-8 top-0 bottom-0 w-1 bg-gradient-to-b from-primary-200 via-primary-300 to-primary-400 rounded-full"></div>
 
           <div className="space-y-8">
-            {mockTimelineEvents.map((task, index) => {
+            {timelineEvents.map((task, index) => {
               const status = getTaskStatus(task)
               const taskDate = getTaskDate(task.daysFromMove)
               

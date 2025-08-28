@@ -5,7 +5,57 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../..
 import { Button } from '../../components/ui/button'
 import { Input } from '../../components/ui/input'
 import { Progress } from '../../components/ui/progress'
-import { weeklyChecklists } from '../../data/mockData'
+// Static checklist data
+const weeklyChecklists = [
+  {
+    week: 8,
+    title: "8 Weeks Before",
+    subtitle: "Research & Planning",
+    progress: 100,
+    tasks: [
+      { id: "w8-1", title: "Research moving companies", completed: true, priority: "high" },
+      { id: "w8-2", title: "Get moving quotes", completed: true, priority: "high" },
+      { id: "w8-3", title: "Create moving budget", completed: true, priority: "medium" },
+      { id: "w8-4", title: "Start decluttering", completed: true, priority: "medium" }
+    ]
+  },
+  {
+    week: 6,
+    title: "6 Weeks Before", 
+    subtitle: "Book Services",
+    progress: 75,
+    tasks: [
+      { id: "w6-1", title: "Book moving company", completed: true, priority: "high" },
+      { id: "w6-2", title: "Order packing supplies", completed: true, priority: "high" },
+      { id: "w6-3", title: "Notify landlord/real estate agent", completed: true, priority: "medium" },
+      { id: "w6-4", title: "Research new neighborhood", completed: false, priority: "low" }
+    ]
+  },
+  {
+    week: 4,
+    title: "4 Weeks Before",
+    subtitle: "Preparation Phase",
+    progress: 50,
+    tasks: [
+      { id: "w4-1", title: "Start using up frozen/perishable food", completed: true, priority: "medium" },
+      { id: "w4-2", title: "Begin packing non-essentials", completed: true, priority: "medium" },
+      { id: "w4-3", title: "Arrange time off work for moving day", completed: false, priority: "high" },
+      { id: "w4-4", title: "Research schools in new area", completed: false, priority: "medium" }
+    ]
+  },
+  {
+    week: 2,
+    title: "2 Weeks Before",
+    subtitle: "Address Changes",
+    progress: 25,
+    tasks: [
+      { id: "w2-1", title: "Submit change of address forms", completed: false, priority: "high" },
+      { id: "w2-2", title: "Notify utility companies", completed: true, priority: "high" },
+      { id: "w2-3", title: "Update address with bank and credit cards", completed: false, priority: "high" },
+      { id: "w2-4", title: "Transfer prescriptions to new pharmacy", completed: false, priority: "medium" }
+    ]
+  }
+]
 
 export default function Checklist() {
   const [checklists, setChecklists] = useState(weeklyChecklists)

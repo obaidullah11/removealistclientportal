@@ -21,7 +21,7 @@ const Features = () => {
     {
       icon: Layers,
       title: 'Weekly Plan',
-      description: 'Detailed weekly plan and Move day checklist.',
+      description: 'Detailed weekly plan and Move day checklist.',
       color: 'text-orange-600',
       bgColor: 'bg-orange-100',
     },

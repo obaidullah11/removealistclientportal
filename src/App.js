@@ -1,23 +1,26 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
+import { ToastProvider, useToast } from './components/ui/toast'
+import { setGlobalToast } from './lib/snackbar'
 import ProtectedRoute from './components/ProtectedRoute'
 
 // Layout Components
 import Navbar from './components/layout/Navbar'
 
-// Landing Page Components (existing)
+// Landing Page Components
 import Hero from './components/Hero'
 import Features from './components/Features'
 import HowItWorks from './components/HowItWorks'
-import Partners from './components/Partners'
-import Sustainability from './components/Sustainability'
-import CTA from './components/CTA'
 import Footer from './components/Footer'
 
 // Auth Pages
 import Login from './pages/auth/Login'
 import Signup from './pages/auth/Signup'
+import ResetPassword from './pages/auth/ResetPassword'
+import ResetPasswordConfirm from './pages/auth/ResetPasswordConfirm'
+import ChangePassword from './pages/auth/ChangePassword'
+import VerifyEmail from './pages/auth/VerifyEmail'
 
 // Moving Platform Pages
 import CreateMove from './pages/move/CreateMove'
@@ -25,6 +28,9 @@ import Timeline from './pages/move/Timeline'
 import Checklist from './pages/move/Checklist'
 import Tips from './pages/move/Tips'
 import Inventory from './pages/inventory/Inventory'
+import MyMove from './pages/move/MyMove'
+import BookTime from './pages/move/BookTime'
+import Profile from './pages/Profile'
 
 // Landing Page Component
 function LandingPage() {
@@ -34,78 +40,121 @@ function LandingPage() {
       <Hero />
       <Features />
       <HowItWorks />
-      <Partners />
-      <Sustainability />
-      <CTA />
       <Footer />
     </div>
   )
 }
 
-// Layout wrapper for authenticated pages
+// Layout wrapper for authenticated pages - maintains landing page style
 function AppLayout({ children }) {
   return (
     <div className="min-h-screen bg-white">
       <Navbar />
-      <main>{children}</main>
+      <main className="pt-8">{children}</main>
+      <Footer />
     </div>
   )
 }
 
+// Toast setup component
+function ToastSetup() {
+  const { toast } = useToast()
+  
+  useEffect(() => {
+    setGlobalToast(toast)
+  }, [toast])
+  
+  return null
+}
+
 function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <div className="App">
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            
-            {/* Protected Routes with App Layout */}
-            <Route path="/move" element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <CreateMove />
-                </AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/timeline" element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <Timeline />
-                </AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/checklist" element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <Checklist />
-                </AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/tips" element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <Tips />
-                </AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/inventory" element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <Inventory />
-                </AppLayout>
-              </ProtectedRoute>
-            } />
-            
-            {/* Redirect unknown routes to landing */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </div>
-      </Router>
-    </AuthProvider>
+    <ToastProvider>
+      <AuthProvider>
+        <Router>
+          <div className="App">
+            <ToastSetup />
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/reset-password/confirm/:token" element={<ResetPasswordConfirm />} />
+              <Route path="/verify-email" element={<VerifyEmail />} />
+              
+              {/* Protected Routes with App Layout */}
+              <Route path="/change-password" element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <ChangePassword />
+                  </AppLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/move" element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <CreateMove />
+                  </AppLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/my-move" element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <MyMove />
+                  </AppLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/book-time" element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <BookTime />
+                  </AppLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/timeline" element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <Timeline />
+                  </AppLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/checklist" element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <Checklist />
+                  </AppLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/tips" element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <Tips />
+                  </AppLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/inventory" element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <Inventory />
+                  </AppLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/profile" element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <Profile />
+                  </AppLayout>
+                </ProtectedRoute>
+              } />
+              
+              {/* Redirect unknown routes to landing */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </div>
+        </Router>
+      </AuthProvider>
+    </ToastProvider>
   )
 }
 

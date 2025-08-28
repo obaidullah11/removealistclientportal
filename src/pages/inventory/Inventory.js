@@ -1,36 +1,98 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Plus, Package, Home, FileText, Car, Upload, Edit, Eye, Check } from 'lucide-react'
 import { Card, CardContent } from '../../components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs'
 import { Button } from '../../components/ui/button'
-
-import { mockRooms } from '../../data/mockData'
+import { inventoryAPI, moveAPI } from '../../lib/api'
+import { showSuccess, showError } from '../../lib/snackbar'
 
 export default function Inventory() {
-  const [rooms, setRooms] = useState(mockRooms)
+  const [rooms, setRooms] = useState([])
+  const [currentMove, setCurrentMove] = useState(null)
+  const [loading, setLoading] = useState(true)
 
-  const addRoom = () => {
-    const name = prompt('Enter room name:')
-    if (name) {
-      const newRoom = {
-        id: `room-${Date.now()}`,
-        name,
-        type: 'other',
-        items: [],
-        boxes: 0,
-        heavyItems: 0,
-        image: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&h=300&fit=crop',
-        packed: false
+  // Load inventory data on component mount
+  useEffect(() => {
+    loadInventoryData()
+  }, [])
+
+  const loadInventoryData = async () => {
+    try {
+      setLoading(true)
+      
+      // Get user's moves first
+      const movesResponse = await moveAPI.getUserMoves()
+      if (!movesResponse.success || !movesResponse.data || movesResponse.data.length === 0) {
+        showError('No moves found. Please create a move first.')
+        return
       }
-      setRooms([...rooms, newRoom])
+      
+      // Use the first move (or you could let user select)
+      const move = movesResponse.data[0]
+      setCurrentMove(move)
+      
+      // Get rooms for this move
+      const roomsResponse = await inventoryAPI.getRooms(move.id)
+      if (roomsResponse.success) {
+        setRooms(roomsResponse.data || [])
+      } else {
+        showError('Failed to load inventory rooms')
+      }
+    } catch (error) {
+      console.error('Error loading inventory data:', error)
+      showError('Failed to load inventory data')
+    } finally {
+      setLoading(false)
     }
   }
 
-  const toggleRoomPacked = (roomId) => {
-    setRooms(rooms.map(room => 
-      room.id === roomId ? {...room, packed: !room.packed} : room
-    ))
+  const addRoom = async () => {
+    const name = prompt('Enter room name:')
+    if (name && currentMove) {
+      try {
+        const roomData = {
+          move_id: currentMove.id,
+          name,
+          room_type: 'other',
+          items: [],
+          estimated_boxes: 0,
+          heavy_items_count: 0,
+          packed: false
+        }
+        
+        const response = await inventoryAPI.createRoom(roomData)
+        if (response.success) {
+          setRooms([...rooms, response.data])
+          showSuccess('Room added successfully!')
+        } else {
+          showError('Failed to add room')
+        }
+      } catch (error) {
+        console.error('Error adding room:', error)
+        showError('Failed to add room')
+      }
+    }
+  }
+
+  const toggleRoomPacked = async (roomId) => {
+    try {
+      const room = rooms.find(r => r.id === roomId)
+      if (!room) return
+      
+      const response = await inventoryAPI.markRoomPacked(roomId, !room.packed)
+      if (response.success) {
+        setRooms(rooms.map(r => 
+          r.id === roomId ? { ...r, packed: !r.packed } : r
+        ))
+        showSuccess(`Room marked as ${!room.packed ? 'packed' : 'unpacked'}!`)
+      } else {
+        showError('Failed to update room status')
+      }
+    } catch (error) {
+      console.error('Error updating room:', error)
+      showError('Failed to update room status')
+    }
   }
 
   const tabData = [
@@ -64,23 +126,54 @@ export default function Inventory() {
     }
   ]
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading your inventory...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!currentMove) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">No Move Found</h2>
+          <p className="text-gray-600 mb-6">Please create a move first to manage your inventory.</p>
+          <Button onClick={() => window.location.href = '/my-move'}>
+            Create Move
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="min-h-screen bg-white">
-      {/* Hero Section */}
-      <div className="bg-gradient-to-r from-emerald-600 to-emerald-700 text-white">
-        <div className="max-w-7xl mx-auto px-4 py-16">
+    <div className="bg-white">
+      {/* Hero Section - Landing Page Style */}
+      <section className="relative py-20 overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 -z-10">
+          <div className="absolute top-0 left-0 w-96 h-96 bg-emerald-100 rounded-full opacity-50 blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
+          <div className="absolute bottom-0 right-0 w-96 h-96 bg-emerald-200 rounded-full opacity-30 blur-3xl translate-x-1/2 translate-y-1/2"></div>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="text-center"
           >
             <div className="flex items-center justify-center mb-6">
-              <div className="w-20 h-20 bg-white/10 backdrop-blur-sm rounded-3xl flex items-center justify-center mr-4">
-                <Package className="h-10 w-10" />
+              <div className="w-20 h-20 bg-emerald-100 rounded-3xl flex items-center justify-center mr-4">
+                <Package className="h-10 w-10 text-emerald-600" />
               </div>
-              <h1 className="text-5xl font-bold">Inventory Manager</h1>
+              <h1 className="text-4xl md:text-5xl font-bold text-gray-900">Inventory Manager</h1>
             </div>
-            <p className="text-xl text-emerald-100 mb-8 max-w-3xl mx-auto">
+            <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
               Keep track of everything you're moving with our smart inventory system. 
               Organize by rooms, track boxes, and never lose track of your belongings.
             </p>
@@ -93,17 +186,17 @@ export default function Inventory() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  className="bg-white/10 backdrop-blur-sm rounded-2xl p-4"
+                  className="bg-white rounded-2xl p-4 shadow-lg"
                 >
-                  <tab.icon className="h-8 w-8 mx-auto mb-2 text-emerald-200" />
-                  <div className="text-2xl font-bold">{tab.count}</div>
-                  <div className="text-sm text-emerald-100">{tab.label}</div>
+                  <tab.icon className="h-8 w-8 mx-auto mb-2 text-emerald-600" />
+                  <div className="text-2xl font-bold text-gray-900">{tab.count}</div>
+                  <div className="text-sm text-gray-600">{tab.label}</div>
                 </motion.div>
               ))}
             </div>
           </motion.div>
         </div>
-      </div>
+      </section>
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 py-12">
@@ -160,14 +253,14 @@ export default function Inventory() {
                     {/* Room Image */}
                     <div className="relative h-48 overflow-hidden">
                       <img 
-                        src={room.image} 
+                        src={room.image || 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&h=300&fit=crop'} 
                         alt={room.name}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
                       <div className="absolute bottom-4 left-4 text-white">
                         <h3 className="text-xl font-bold">{room.name}</h3>
-                        <p className="text-sm text-white/80 capitalize">{room.type.replace('_', ' ')}</p>
+                        <p className="text-sm text-white/80 capitalize">{(room.room_type || room.type || 'other').replace('_', ' ')}</p>
                       </div>
                       {room.packed && (
                         <div className="absolute top-4 right-4 bg-green-500 text-white px-3 py-1 rounded-full text-sm font-semibold flex items-center">
@@ -181,15 +274,15 @@ export default function Inventory() {
                       {/* Room Stats */}
                       <div className="grid grid-cols-3 gap-4 mb-6">
                         <div className="text-center">
-                          <div className="text-2xl font-bold text-primary-600">{room.items.length}</div>
+                          <div className="text-2xl font-bold text-primary-600">{room.items?.length || 0}</div>
                           <div className="text-xs text-gray-600">Items</div>
                         </div>
                         <div className="text-center">
-                          <div className="text-2xl font-bold text-blue-600">{room.boxes}</div>
+                          <div className="text-2xl font-bold text-blue-600">{room.estimated_boxes || 0}</div>
                           <div className="text-xs text-gray-600">Boxes</div>
                         </div>
                         <div className="text-center">
-                          <div className="text-2xl font-bold text-orange-600">{room.heavyItems}</div>
+                          <div className="text-2xl font-bold text-orange-600">{room.heavy_items_count || 0}</div>
                           <div className="text-xs text-gray-600">Heavy</div>
                         </div>
                       </div>
@@ -198,14 +291,22 @@ export default function Inventory() {
                       <div className="mb-6">
                         <h4 className="font-semibold text-gray-700 mb-2">Items:</h4>
                         <div className="flex flex-wrap gap-1">
-                          {room.items.slice(0, 3).map((item, idx) => (
-                            <span key={idx} className="px-2 py-1 bg-primary-100 text-primary-700 rounded-full text-xs font-medium">
-                              {item}
-                            </span>
-                          ))}
-                          {room.items.length > 3 && (
+                          {room.items && room.items.length > 0 ? (
+                            <>
+                              {room.items.slice(0, 3).map((item, idx) => (
+                                <span key={idx} className="px-2 py-1 bg-primary-100 text-primary-700 rounded-full text-xs font-medium">
+                                  {typeof item === 'string' ? item : item.name || 'Item'}
+                                </span>
+                              ))}
+                              {room.items.length > 3 && (
+                                <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">
+                                  +{room.items.length - 3} more
+                                </span>
+                              )}
+                            </>
+                          ) : (
                             <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">
-                              +{room.items.length - 3} more
+                              No items added yet
                             </span>
                           )}
                         </div>

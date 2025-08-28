@@ -1,8 +1,21 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { UserPlus, MapPin, FileText, Truck } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const HowItWorks = () => {
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+
+  const handleStartMove = () => {
+    if (isAuthenticated) {
+      navigate('/my-move');
+    } else {
+      navigate('/signup');
+    }
+  };
+
   const steps = [
     {
       number: '1',
@@ -20,7 +33,7 @@ const HowItWorks = () => {
       number: '3',
       icon: FileText,
       title: 'Get Quotes',
-      description: 'Receive  quotes from verified partners.',
+      description: 'Receive quotes from verified partners.',
     },
     {
       number: '4',
@@ -99,7 +112,10 @@ const HowItWorks = () => {
           transition={{ duration: 0.6, delay: 0.4 }}
           className="text-center mt-12"
         >
-          <button className="px-8 py-3 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-lg font-medium hover:from-primary-600 hover:to-primary-700 transition-all duration-200 shadow-lg hover:shadow-xl">
+          <button 
+            onClick={handleStartMove}
+            className="px-8 py-3 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-lg font-medium hover:from-primary-600 hover:to-primary-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+          >
             Start Your Move Today
           </button>
         </motion.div>

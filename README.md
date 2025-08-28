@@ -1,120 +1,168 @@
-# RemoveAList Landing Page
+# RemoveList - Moving Platform
 
-A modern, responsive landing page for RemoveAList - Australia's AI-powered moving platform.
+A comprehensive moving platform that helps users plan, organize, and execute their moves efficiently.
 
-## 🎨 Design Features
+## Features
 
-- **Green Color Scheme**: Based on the RemoveAList logo (#4CAF50 primary)
-- **Responsive Design**: Mobile-first approach with breakpoints for all devices
-- **Smooth Animations**: Powered by Framer Motion
-- **Modern UI**: Clean, minimalist design with Tailwind CSS
+- **User Authentication**: Secure email-based registration and login
+- **Move Management**: Create and track moving projects
+- **Inventory Management**: Organize and track items
+- **Timeline Planning**: Visual timeline for move preparation
+- **Checklist System**: Comprehensive moving checklists
+- **Tips & Guidance**: Expert moving advice and tips
+- **Responsive Design**: Works on all devices
 
-## 🚀 Getting Started
+## Tech Stack
+
+### Backend
+- **Django 4.2.7**: Web framework
+- **Django REST Framework**: API development
+- **Django Simple JWT**: Authentication
+- **SQLite**: Database (can be upgraded to PostgreSQL)
+- **Django CORS Headers**: Cross-origin resource sharing
+
+### Frontend
+- **React 19**: User interface
+- **Tailwind CSS**: Styling
+- **Framer Motion**: Animations
+- **React Router**: Navigation
+- **Lucide React**: Icons
+
+## Quick Start
 
 ### Prerequisites
-
-- Node.js (v14 or higher)
+- Python 3.8+
+- Node.js 16+
 - npm or yarn
 
-### Installation
+### Backend Setup
 
-1. Navigate to the project directory:
-```bash
-cd removelist-landing
+1. **Navigate to backend directory:**
+   ```bash
+   cd removealist/backend
+   ```
+
+2. **Create virtual environment:**
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
+
+3. **Install dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. **Set up environment variables:**
+   ```bash
+   cp env.example .env
+   # Edit .env with your configuration
+   ```
+
+5. **Run migrations:**
+   ```bash
+   python manage.py migrate
+   ```
+
+6. **Create superuser:**
+   ```bash
+   python manage.py createsuperuser
+   ```
+
+7. **Start backend server:**
+   ```bash
+   python manage.py runserver
+   ```
+
+### Frontend Setup
+
+1. **Navigate to frontend directory:**
+   ```bash
+   cd removealist
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Start development server:**
+   ```bash
+   npm start
+   ```
+
+## API Endpoints
+
+### Authentication
+- `POST /api/auth/register/email/` - User registration
+- `POST /api/auth/login/` - User login
+- `POST /api/auth/logout/` - User logout
+- `POST /api/auth/verify-email/` - Email verification
+- `POST /api/auth/forgot-password/` - Password reset request
+- `POST /api/auth/reset-password/` - Password reset confirmation
+- `GET /api/auth/profile/` - Get user profile
+- `PUT /api/auth/profile/` - Update user profile
+
+## Project Structure
+
+```
+removealist/
+├── backend/                 # Django backend
+│   ├── authentication/      # User authentication app
+│   ├── core/               # Core utilities and permissions
+│   ├── myproject/          # Django project settings
+│   └── manage.py           # Django management script
+├── src/                    # React frontend source
+│   ├── components/         # Reusable UI components
+│   ├── contexts/           # React contexts
+│   ├── lib/                # Utility libraries
+│   ├── pages/              # Page components
+│   └── App.js              # Main app component
+├── public/                 # Static assets
+└── package.json            # Frontend dependencies
 ```
 
-2. Install dependencies:
-```bash
-npm install
-```
+## Development
 
-3. Start the development server:
-```bash
-npm start
-```
+### Backend Development
+- The backend uses Django REST Framework for API development
+- JWT tokens are used for authentication
+- CORS is configured for frontend integration
+- Phone verification is temporarily disabled (email-only for now)
 
-The app will open at [http://localhost:3000](http://localhost:3000)
+### Frontend Development
+- React components are organized by feature
+- Tailwind CSS is used for styling
+- Framer Motion provides smooth animations
+- Protected routes require authentication
 
-## 📁 Project Structure
+## Production Deployment
 
-```
-removelist-landing/
-├── public/
-│   └── index.html
-├── src/
-│   ├── components/
-│   │   ├── Navbar.js       # Navigation with mobile menu
-│   │   ├── Hero.js         # Hero section with animated mockup
-│   │   ├── Features.js     # Feature grid
-│   │   ├── HowItWorks.js   # Process steps
-│   │   ├── Partners.js     # Partner benefits
-│   │   ├── Sustainability.js # Eco features
-│   │   ├── CTA.js         # Call-to-action section
-│   │   └── Footer.js      # Footer with links
-│   ├── App.js             # Main app component
-│   ├── index.js           # Entry point
-│   └── index.css          # Tailwind imports
-├── tailwind.config.js     # Tailwind configuration
-└── package.json
-```
+### Backend
+1. Set `DEBUG=False` in production
+2. Use environment variables for sensitive data
+3. Configure proper database (PostgreSQL recommended)
+4. Set up email backend for verification emails
+5. Configure CORS for production domains
 
-## 🛠️ Technologies Used
+### Frontend
+1. Build the application: `npm run build`
+2. Serve static files from a web server
+3. Configure environment variables
+4. Set up proper routing for SPA
 
-- **React**: UI library
-- **Tailwind CSS**: Utility-first CSS framework
-- **Framer Motion**: Animation library
-- **Lucide React**: Icon library
+## Contributing
 
-## 🎯 Features
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
 
-- Animated hero section with phone mockup
-- Smooth scroll navigation
-- Interactive feature cards
-- Step-by-step process visualization
-- Partner benefits showcase
-- Sustainability focus section
-- Responsive mobile menu
-- Hover effects and micro-interactions
+## License
 
-## 🏗️ Building for Production
+This project is licensed under the MIT License.
 
-```bash
-npm run build
-```
+## Support
 
-This creates an optimized production build in the `build` folder.
-
-## 🔧 Customization
-
-### Colors
-Edit the color palette in `tailwind.config.js`:
-```javascript
-colors: {
-  primary: {
-    50: '#E8F5E9',
-    // ... other shades
-    500: '#4CAF50', // Main brand color
-  }
-}
-```
-
-### Content
-All text content is directly in the component files for easy editing.
-
-## 📱 Responsive Breakpoints
-
-- Mobile: < 768px
-- Tablet: 768px - 1024px
-- Desktop: > 1024px
-
-## 🚀 Deployment
-
-The build folder is ready to be deployed to any static hosting service:
-- Netlify
-- Vercel
-- GitHub Pages
-- AWS S3
-
-## 📄 License
-
-This project is part of the RemoveAList platform.
+For support and questions, please open an issue on GitHub.

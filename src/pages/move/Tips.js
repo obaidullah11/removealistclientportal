@@ -4,7 +4,69 @@ import { Lightbulb, Heart, Star, BookOpen, Sparkles } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs'
 import { Button } from '../../components/ui/button'
-import { mockMovingTips } from '../../data/mockData'
+// Static moving tips data
+const mockMovingTips = {
+  room: [
+    { 
+      icon: "🛋️",
+      title: "Living Room", 
+      tip: "Wrap electronics in bubble wrap and keep original boxes when possible. Take photos of cable connections before disconnecting.",
+      difficulty: "Easy"
+    },
+    { 
+      icon: "🍳",
+      title: "Kitchen", 
+      tip: "Pack dishes vertically like records to prevent breaking. Use towels and linens as padding to save space.",
+      difficulty: "Medium"
+    },
+    { 
+      icon: "🛏️",
+      title: "Bedroom", 
+      tip: "Use vacuum bags for clothing to save 75% space. Keep one outfit accessible for moving day.",
+      difficulty: "Easy"
+    }
+  ],
+  item: [
+    { 
+      icon: "📦",
+      title: "Fragile Items", 
+      tip: "Use plenty of padding and mark boxes clearly as 'FRAGILE' on all sides. Pack heavier items on bottom.",
+      difficulty: "Medium"
+    },
+    { 
+      icon: "⚖️",
+      title: "Heavy Items", 
+      tip: "Use smaller boxes for heavy items to make them easier to carry. Limit weight to 50lbs per box.",
+      difficulty: "Hard"
+    },
+    { 
+      icon: "💎",
+      title: "Valuables", 
+      tip: "Keep important documents and valuables with you during the move. Consider a safety deposit box.",
+      difficulty: "Easy"
+    }
+  ],
+  personal: [
+    { 
+      icon: "📋",
+      title: "Important Documents", 
+      tip: "Keep birth certificates, passports, and insurance papers in a waterproof folder that travels with you.",
+      difficulty: "Easy"
+    },
+    { 
+      icon: "💊",
+      title: "Medications", 
+      tip: "Pack a separate bag with all necessary medications and keep it temperature controlled.",
+      difficulty: "Easy"
+    },
+    { 
+      icon: "🚨",
+      title: "Emergency Kit", 
+      tip: "Prepare a first-aid kit and emergency supplies for moving day including snacks and water.",
+      difficulty: "Easy"
+    }
+  ]
+}
 
 export default function Tips() {
   const [favoritesTips, setFavoritesTips] = useState([])

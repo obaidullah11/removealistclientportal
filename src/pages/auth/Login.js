@@ -1,12 +1,14 @@
 import React, { useState } from 'react'
+import { showSuccess, showWarning, showError } from '../../lib/snackbar'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Eye, EyeOff, Mail, Lock, Phone, ArrowRight } from 'lucide-react'
+import { Eye, EyeOff, Mail, Lock, ArrowRight } from 'lucide-react'
 import { Button } from '../../components/ui/button'
 import { Input } from '../../components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs'
 import { useAuth } from '../../contexts/AuthContext'
+import { validateField } from '../../lib/validation'
 
 export default function Login() {
   const { login } = useAuth()
@@ -14,46 +16,141 @@ export default function Login() {
   const location = useLocation()
 
   const [showPassword, setShowPassword] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
   const [formData, setFormData] = useState({
     email: '',
-    phone: '',
-    password: '',
-    otp: ''
+    password: ''
   })
+  
+  const [fieldErrors, setFieldErrors] = useState({})
+  const [touched, setTouched] = useState({})
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    // Mock login - create user data
-    const userData = {
-      id: Date.now(),
-      email: formData.email || formData.phone,
-      name: 'User',
-      phone: formData.phone
+    setLoading(true)
+    setError('')
+
+    try {
+        // Client-side validation using utility
+  const validationErrors = {}
+  
+  const emailError = validateField('email', formData.email)
+  if (emailError) validationErrors.email = emailError
+  
+  const passwordError = validateField('password', formData.password)
+  if (passwordError) validationErrors.password = passwordError
+  
+  if (Object.keys(validationErrors).length > 0) {
+    setFieldErrors(validationErrors)
+    setLoading(false)
+    return
+  }
+      
+      let credentials = {
+        email: formData.email,
+        password: formData.password
+      }
+
+      const result = await login(credentials)
+      
+      if (result.success) {
+        // Check if email is verified
+        if (result.emailVerified === false) {
+          // Show warning but still allow login
+          showWarning('Your email is not verified. Some features may be limited. Please check your email for verification instructions.')
+        } else {
+          // Show success message
+          showSuccess('Login successful! Welcome back.')
+        }
+        
+        // Redirect to intended destination or default to /move
+        const from = location.state?.from?.pathname || '/move'
+        navigate('/my-move', { replace: true })
+      } else {
+        // Handle specific error cases
+        if (result.errors && result.errors.non_field_errors) {
+          if (result.errors.non_field_errors.includes('verify your email')) {
+            const errorMsg = 'Please verify your email before logging in. Check your inbox for verification instructions.';
+            setError(errorMsg);
+            showError(errorMsg);
+          } else {
+            setError(result.errors.non_field_errors[0]);
+            showError(result.errors.non_field_errors[0]);
+          }
+        } else {
+          const errorMsg = result.message || 'Login failed. Please try again.';
+          setError(errorMsg);
+          showError(errorMsg);
+        }
+      }
+    } catch (error) {
+      console.error('Login error:', error)
+      const errorMsg = 'Login failed. Please try again.';
+      setError(errorMsg);
+      showError(errorMsg);
+    } finally {
+      setLoading(false)
     }
-    
-    login(userData)
-    
-    // Redirect to intended destination or default to /move
-    const from = location.state?.from?.pathname || '/move'
-    navigate(from, { replace: true })
   }
 
-  const handleSocialLogin = (provider) => {
-    console.log(`Login with ${provider}`)
-    // Mock social login
-    const userData = {
-      id: Date.now(),
-      email: `user@${provider}.com`,
-      name: `${provider} User`,
-      provider
-    }
-    
-    login(userData)
-    navigate('/move', { replace: true })
+  // Validation functions using utility
+  const validateFieldLocal = (name, value) => {
+    return validateField(name, value)
   }
 
-  const sendOTP = () => {
-    alert('OTP sent to your phone!')
+  const handleFieldChange = (field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }))
+    
+    // Clear field error when user starts typing
+    if (fieldErrors[field]) {
+      setFieldErrors(prev => ({ ...prev, [field]: null }))
+    }
+  }
+
+  const handleFieldBlur = (field) => {
+    setTouched(prev => ({ ...prev, [field]: true }))
+    
+    // Validate field on blur
+    const error = validateFieldLocal(field, formData[field])
+    if (error) {
+      setFieldErrors(prev => ({ ...prev, [field]: error }))
+    }
+  }
+
+  const getFieldError = (fieldName) => {
+    return fieldErrors[fieldName] || null
+  }
+
+  const isFieldValid = (fieldName) => {
+    return !fieldErrors[fieldName] && touched[fieldName]
+  }
+
+  const handleSocialLogin = async (provider) => {
+    setLoading(true)
+    setError('')
+
+    try {
+      // For now, we'll use mock data for social login
+      // In production, you'd integrate with Google/Facebook OAuth
+      console.log(`Login with ${provider}`)
+      
+      // Mock social login data
+      const userData = {
+        id: Date.now(),
+        email: `user@${provider}.com`,
+        name: `${provider} User`,
+        provider
+      }
+      
+      // For now, we'll just redirect
+      // In production, you'd call the Google/Facebook OAuth endpoints
+      navigate('/my-move', { replace: true })
+    } catch (error) {
+      setError(`${provider} login failed. Please try again.`)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -83,156 +180,88 @@ export default function Login() {
               </CardDescription>
             </CardHeader>
             <CardContent className="pt-6">
+
+
+              {/* Error Message */}
+              {error && (
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+                  <p className="text-sm text-red-600">{error}</p>
+                </div>
+              )}
+
               <Tabs defaultValue="email" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 mb-6">
-                  <TabsTrigger value="email" className="text-sm">Email</TabsTrigger>
-                  <TabsTrigger value="phone" className="text-sm">Phone & OTP</TabsTrigger>
-                </TabsList>
-                
                 <TabsContent value="email" className="space-y-4">
                   <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="space-y-2">
-                      <label className="text-sm font-semibold text-gray-700">Email</label>
+                      <label htmlFor="email" className="text-sm font-semibold text-gray-700">Email</label>
                       <div className="relative">
                         <Mail className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
                         <Input
+                          id="email"
                           type="email"
                           placeholder="Enter your email"
-                          className="pl-11 h-12"
+                          className={`pl-11 h-12 ${getFieldError('email') ? 'border-red-300' : ''} ${isFieldValid('email') ? 'border-green-300' : ''}`}
                           value={formData.email}
-                          onChange={(e) => setFormData({...formData, email: e.target.value})}
+                          onChange={(e) => handleFieldChange('email', e.target.value)}
+                          onBlur={() => handleFieldBlur('email')}
                           required
+                          disabled={loading}
+                          aria-describedby="email-error"
                         />
                       </div>
+                      {getFieldError('email') && (
+                        <p className="text-xs text-red-500">{getFieldError('email')}</p>
+                      )}
                     </div>
                     
                     <div className="space-y-2">
-                      <label className="text-sm font-semibold text-gray-700">Password</label>
+                      <label htmlFor="password" className="text-sm font-semibold text-gray-700">Password</label>
                       <div className="relative">
                         <Lock className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
                         <Input
+                          id="password"
                           type={showPassword ? "text" : "password"}
                           placeholder="Enter your password"
-                          className="pl-11 pr-11 h-12"
+                          className={`pl-11 pr-11 h-12 ${getFieldError('password') ? 'border-red-300' : ''} ${isFieldValid('password') ? 'border-green-300' : ''}`}
                           value={formData.password}
-                          onChange={(e) => setFormData({...formData, password: e.target.value})}
+                          onChange={(e) => handleFieldChange('password', e.target.value)}
+                          onBlur={() => handleFieldBlur('password')}
                           required
+                          disabled={loading}
+                          aria-describedby="password-error"
                         />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-3.5 h-5 w-5 text-gray-400 hover:text-gray-600"
-                        >
-                          {showPassword ? <EyeOff /> : <Eye />}
-                        </button>
+                                                  <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-3.5 h-5 w-5 text-gray-400 hover:text-gray-600"
+                            disabled={loading}
+                            aria-label={showPassword ? "Hide password" : "Show password"}
+                          >
+                            {showPassword ? <EyeOff /> : <Eye />}
+                          </button>
+                        </div>
+                        {getFieldError('password') && (
+                          <p className="text-xs text-red-500">{getFieldError('password')}</p>
+                        )}
                       </div>
-                    </div>
 
                     <div className="text-right">
-                      <Link to="/forgot-password" className="text-sm text-primary-600 hover:text-primary-700 font-medium">
+                      <Link to="/reset-password" className="text-sm text-primary-600 hover:text-primary-700 font-medium">
                         Forgot password?
                       </Link>
                     </div>
                     
-                    <Button type="submit" className="w-full h-12 text-base font-semibold bg-primary-600 hover:bg-primary-700 text-white">
-                      Sign In
-                      <ArrowRight className="ml-2 h-5 w-5" />
-                    </Button>
-                  </form>
-                </TabsContent>
-                
-                <TabsContent value="phone" className="space-y-4">
-                  <form onSubmit={handleSubmit} className="space-y-4">
-                    <div className="space-y-2">
-                      <label className="text-sm font-semibold text-gray-700">Phone Number</label>
-                      <div className="relative">
-                        <Phone className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
-                        <Input
-                          type="tel"
-                          placeholder="+1 (555) 123-4567"
-                          className="pl-11 h-12"
-                          value={formData.phone}
-                          onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                          required
-                        />
-                      </div>
-                    </div>
-                    
-                    <Button type="button" onClick={sendOTP} className="w-full h-12" variant="outline">
-                      Send OTP Code
-                    </Button>
-                    
-                    <div className="space-y-2">
-                      <label className="text-sm font-semibold text-gray-700">Enter OTP</label>
-                      <Input
-                        type="text"
-                        placeholder="123456"
-                        maxLength="6"
-                        className="text-center text-lg tracking-widest h-12 font-mono"
-                        value={formData.otp}
-                        onChange={(e) => setFormData({...formData, otp: e.target.value})}
-                      />
-                    </div>
-                    
-                    <Button type="submit" className="w-full h-12 text-base font-semibold bg-primary-600 hover:bg-primary-700 text-white">
-                      Verify & Sign In
+                    <Button 
+                      type="submit" 
+                      className="w-full h-12 text-base font-semibold bg-primary-600 hover:bg-primary-700 text-white"
+                      disabled={loading}
+                    >
+                      {loading ? 'Signing In...' : 'Sign In'}
                       <ArrowRight className="ml-2 h-5 w-5" />
                     </Button>
                   </form>
                 </TabsContent>
               </Tabs>
-              
-              {/* Social Login */}
-              <div className="mt-6">
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t border-gray-200" />
-                  </div>
-                  <div className="relative flex justify-center text-sm">
-                    <span className="bg-white px-4 text-gray-500 font-medium">
-                      Or continue with
-                    </span>
-                  </div>
-                </div>
-                
-                <div className="mt-4 grid grid-cols-2 gap-3">
-                  <Button
-                    variant="outline"
-                    onClick={() => handleSocialLogin('google')}
-                    className="w-full h-12 font-semibold"
-                  >
-                    <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24">
-                      <path
-                        fill="currentColor"
-                        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                      />
-                      <path
-                        fill="currentColor"
-                        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                      />
-                      <path
-                        fill="currentColor"
-                        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                      />
-                      <path
-                        fill="currentColor"
-                        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                      />
-                    </svg>
-                    Google
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => handleSocialLogin('facebook')}
-                    className="w-full h-12 font-semibold"
-                  >
-                    <svg className="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                    </svg>
-                    Facebook
-                  </Button>
-                </div>
-              </div>
               
               <div className="mt-6 text-center">
                 <span className="text-sm text-gray-600">Don't have an account? </span>

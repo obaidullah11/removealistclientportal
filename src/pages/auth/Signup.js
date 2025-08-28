@@ -1,43 +1,171 @@
 import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { showSuccess, showError } from '../../lib/snackbar'
+import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Eye, EyeOff, Mail, Lock, User, Phone, ArrowRight, Check } from 'lucide-react'
+import { Eye, EyeOff, Mail, Lock, User, ArrowRight, Phone } from 'lucide-react'
 import { Button } from '../../components/ui/button'
 import { Input } from '../../components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card'
+import { Checkbox } from '../../components/ui/checkbox'
+import { useAuth } from '../../contexts/AuthContext'
+import { validateField, validateTerms } from '../../lib/validation'
 
 export default function Signup() {
+  const { register } = useAuth()
+  const navigate = useNavigate()
+  
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [fieldErrors, setFieldErrors] = useState({})
+  const [touched, setTouched] = useState({})
   const [formData, setFormData] = useState({
-    name: '',
+    first_name: '',
+    last_name: '',
     email: '',
-    phone: '',
+    phone_number: '',
     password: '',
-    confirmPassword: '',
-    agreeToTerms: false
+    confirm_password: '',
+    agree_to_terms: false
   })
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    if (formData.password !== formData.confirmPassword) {
-      alert("Passwords don't match!")
+    setLoading(true)
+    setError('')
+    setFieldErrors({})
+
+    // Client-side validation
+    const validationErrors = {}
+    
+    // Validate all fields using utility
+    const fieldsToValidate = ['first_name', 'last_name', 'email', 'phone_number', 'password', 'confirm_password']
+    fieldsToValidate.forEach(field => {
+      let error = null
+      if (field === 'phone_number') {
+        error = validateField('phone', formData[field])
+      } else if (field === 'confirm_password') {
+        error = validateField('confirmPassword', formData[field], { password: formData.password })
+      } else {
+        error = validateField(field, formData[field])
+      }
+      
+      if (error) {
+        validationErrors[field] = error
+      }
+    })
+    
+    // Check terms agreement
+    const termsError = validateTerms(formData.agree_to_terms)
+    if (termsError) {
+      validationErrors.agree_to_terms = termsError
+    }
+    
+    if (Object.keys(validationErrors).length > 0) {
+      setFieldErrors(validationErrors)
+      setLoading(false)
       return
     }
-    if (!formData.agreeToTerms) {
-      alert("Please agree to the terms and conditions")
-      return
+
+    try {
+      // Use form data directly as it matches backend structure
+      const userData = formData
+
+      const result = await register(userData)
+      
+      if (result.success) {
+        // Show success message and redirect to email verification page
+        const successMsg = result.message || 'Account created successfully! Please check your email for verification.';
+        showSuccess(successMsg);
+        navigate(`/verify-email?email=${encodeURIComponent(formData.email)}`)
+      } else {
+        // Handle specific error cases
+        if (result.errors) {
+          // Check for duplicate email error
+          if (result.errors.email && result.errors.email.includes('already exists')) {
+            const errorMsg = 'This email is already registered. Please log in or use a different email.';
+            setError(errorMsg);
+            showError(errorMsg);
+            setFieldErrors({
+              ...result.errors,
+              email: ['This email is already registered.']
+            })
+          } else {
+            setFieldErrors(result.errors);
+            const errorMsg = result.message || 'Registration failed';
+            setError(errorMsg);
+            showError(errorMsg);
+          }
+        } else {
+          const errorMsg = result.message || 'Registration failed';
+          setError(errorMsg);
+          showError(errorMsg);
+        }
+      }
+    } catch (error) {
+      console.error('Registration error:', error)
+      const errorMsg = 'Registration failed. Please try again.';
+      setError(errorMsg);
+      showError(errorMsg);
+    } finally {
+      setLoading(false)
     }
-    // Mock signup logic
-    console.log('Signup attempt:', formData)
-    // Redirect to main app
-    window.location.href = '/move'
   }
 
-  const handleSocialLogin = (provider) => {
-    console.log(`Signup with ${provider}`)
-    // Mock social signup
-    window.location.href = '/move'
+  const handleSocialLogin = async (provider) => {
+    setLoading(true)
+    setError('')
+
+    try {
+      // For now, we'll use mock data for social signup
+      // In production, you'd integrate with Google/Facebook OAuth
+      console.log(`Signup with ${provider}`)
+      
+      // Mock social signup - redirect to main app
+      navigate('/move')
+    } catch (error) {
+      setError(`${provider} signup failed. Please try again.`)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Validation functions using utility
+  const validateFieldLocal = (name, value) => {
+    if (name === 'phone_number') {
+      return validateField('phone', value)
+    } else if (name === 'confirm_password') {
+      return validateField('confirmPassword', value, { password: formData.password })
+    }
+    return validateField(name, value, formData)
+  }
+
+  const handleFieldChange = (field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }))
+    
+    // Clear field error when user starts typing
+    if (fieldErrors[field]) {
+      setFieldErrors(prev => ({ ...prev, [field]: null }))
+    }
+  }
+
+  const handleFieldBlur = (field) => {
+    setTouched(prev => ({ ...prev, [field]: true }))
+    
+    // Validate field on blur
+    const error = validateFieldLocal(field, formData[field])
+    if (error) {
+      setFieldErrors(prev => ({ ...prev, [field]: error }))
+    }
+  }
+
+  const getFieldError = (fieldName) => {
+    return fieldErrors[fieldName] || null
+  }
+
+  const isFieldValid = (fieldName) => {
+    return !fieldErrors[fieldName] && touched[fieldName]
   }
 
   return (
@@ -49,12 +177,9 @@ export default function Signup() {
         className="w-full max-w-md"
       >
         {/* Logo */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-2">
           <Link to="/" className="inline-flex items-center space-x-3">
-            
-             <img src="/images/logo.png" alt="logo" className="w-25 h-12" />
-           
-            
+            <img src="/images/logo.png" alt="logo" className="w-25 h-12" />
           </Link>
         </div>
         
@@ -66,184 +191,207 @@ export default function Signup() {
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-6">
+
+
+            {/* Error Message */}
+            {error && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+                <p className="text-sm text-red-600">{error}</p>
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-gray-700">Full Name</label>
-                <div className="relative">
-                  <User className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
-                  <Input
-                    type="text"
-                    placeholder="Enter your full name"
-                    className="pl-11 h-12"
-                    value={formData.name}
-                    onChange={(e) => setFormData({...formData, name: e.target.value})}
-                    required
-                  />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label htmlFor="first_name" className="text-sm font-semibold text-gray-700">First Name</label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+                    <Input
+                      id="first_name"
+                      type="text"
+                      placeholder="First name"
+                      className={`pl-11 h-12 ${getFieldError('first_name') ? 'border-red-300' : ''} ${isFieldValid('first_name') ? 'border-green-300' : ''}`}
+                      value={formData.first_name}
+                      onChange={(e) => handleFieldChange('first_name', e.target.value)}
+                      onBlur={() => handleFieldBlur('first_name')}
+                      required
+                      disabled={loading}
+                      aria-describedby="first_name-error"
+                    />
+                  </div>
+                  {getFieldError('first_name') && (
+                    <p className="text-xs text-red-500">{getFieldError('first_name')}</p>
+                  )}
+                </div>
+                
+                <div className="space-y-2">
+                  <label htmlFor="last_name" className="text-sm font-semibold text-gray-700">Last Name</label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+                    <Input
+                      id="last_name"
+                      type="text"
+                      placeholder="Last name"
+                      className={`pl-11 h-12 ${getFieldError('last_name') ? 'border-red-300' : ''} ${isFieldValid('last_name') ? 'border-green-300' : ''}`}
+                      value={formData.last_name}
+                      onChange={(e) => handleFieldChange('last_name', e.target.value)}
+                      onBlur={() => handleFieldBlur('last_name')}
+                      required
+                      disabled={loading}
+                      aria-describedby="last_name-error"
+                    />
+                  </div>
+                  {getFieldError('last_name') && (
+                    <p className="text-xs text-red-500">{getFieldError('last_name')}</p>
+                  )}
                 </div>
               </div>
-              
+
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-gray-700">Email</label>
+                <label htmlFor="email" className="text-sm font-semibold text-gray-700">Email</label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
                   <Input
+                    id="email"
                     type="email"
                     placeholder="Enter your email"
-                    className="pl-11 h-12"
+                    className={`pl-11 h-12 ${getFieldError('email') ? 'border-red-300' : ''} ${isFieldValid('email') ? 'border-green-300' : ''}`}
                     value={formData.email}
-                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                    onChange={(e) => handleFieldChange('email', e.target.value)}
+                    onBlur={() => handleFieldBlur('email')}
                     required
+                    disabled={loading}
+                    aria-describedby="email-error"
                   />
                 </div>
+                {getFieldError('email') && (
+                  <p className="text-xs text-red-500">{getFieldError('email')}</p>
+                )}
               </div>
-              
+
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-gray-700">Phone Number</label>
+                <label htmlFor="phone_number" className="text-sm font-semibold text-gray-700">Phone Number</label>
                 <div className="relative">
                   <Phone className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
                   <Input
+                    id="phone_number"
                     type="tel"
-                    placeholder="+61 400 123 456"
-                    className="pl-11 h-12"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                    placeholder="+1234567890"
+                    className={`pl-11 h-12 ${getFieldError('phone_number') ? 'border-red-300' : ''} ${isFieldValid('phone_number') ? 'border-green-300' : ''}`}
+                    value={formData.phone_number}
+                    onChange={(e) => handleFieldChange('phone_number', e.target.value)}
+                    onBlur={() => handleFieldBlur('phone_number')}
                     required
+                    disabled={loading}
+                    aria-describedby="phone_number-error"
                   />
                 </div>
+                <p className="text-xs text-gray-500">Include country code (e.g., +1 for US, +44 for UK)</p>
+                {getFieldError('phone_number') && (
+                  <p className="text-xs text-red-500">{getFieldError('phone_number')}</p>
+                )}
               </div>
-              
+
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-gray-700">Password</label>
+                <label htmlFor="password" className="text-sm font-semibold text-gray-700">Password</label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
                   <Input
+                    id="password"
                     type={showPassword ? "text" : "password"}
                     placeholder="Create a strong password"
-                    className="pl-11 pr-11 h-12"
+                    className={`pl-11 pr-11 h-12 ${getFieldError('password') ? 'border-red-300' : ''} ${isFieldValid('password') ? 'border-green-300' : ''}`}
                     value={formData.password}
-                    onChange={(e) => setFormData({...formData, password: e.target.value})}
+                    onChange={(e) => handleFieldChange('password', e.target.value)}
+                    onBlur={() => handleFieldBlur('password')}
                     required
+                    disabled={loading}
+                    aria-describedby="password-error"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-3.5 h-5 w-5 text-gray-400 hover:text-gray-600"
+                    disabled={loading}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
                   >
                     {showPassword ? <EyeOff /> : <Eye />}
                   </button>
                 </div>
-                <p className="text-xs text-gray-500">Must be at least 8 characters long</p>
+                {getFieldError('password') && (
+                  <p className="text-xs text-red-500">{getFieldError('password')}</p>
+                )}
               </div>
-              
+
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-gray-700">Confirm Password</label>
+                <label htmlFor="confirm_password" className="text-sm font-semibold text-gray-700">Confirm Password</label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
                   <Input
+                    id="confirm_password"
                     type={showConfirmPassword ? "text" : "password"}
                     placeholder="Confirm your password"
-                    className="pl-11 pr-11 h-12"
-                    value={formData.confirmPassword}
-                    onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
+                    className={`pl-11 pr-11 h-12 ${getFieldError('confirm_password') ? 'border-red-300' : ''} ${isFieldValid('confirm_password') ? 'border-green-300' : ''}`}
+                    value={formData.confirm_password}
+                    onChange={(e) => handleFieldChange('confirm_password', e.target.value)}
+                    onBlur={() => handleFieldBlur('confirm_password')}
                     required
+                    disabled={loading}
+                    aria-describedby="confirm_password-error"
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     className="absolute right-3 top-3.5 h-5 w-5 text-gray-400 hover:text-gray-600"
+                    disabled={loading}
+                    aria-label={showConfirmPassword ? "Hide password" : "Show password"}
                   >
                     {showConfirmPassword ? <EyeOff /> : <Eye />}
                   </button>
                 </div>
+                {getFieldError('confirm_password') && (
+                  <p className="text-xs text-red-500">{getFieldError('confirm_password')}</p>
+                )}
               </div>
-              
-              <div className="flex items-start space-x-3">
-                <button
-                  type="button"
-                  onClick={() => setFormData({...formData, agreeToTerms: !formData.agreeToTerms})}
-                  className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors mt-0.5 ${
-                    formData.agreeToTerms
-                      ? 'bg-primary-600 border-primary-600'
-                      : 'border-gray-300 hover:border-primary-400'
-                  }`}
-                >
-                  {formData.agreeToTerms && (
-                    <Check className="h-3 w-3 text-white" />
-                  )}
-                </button>
-                <label className="text-sm text-gray-600 leading-relaxed">
-                  I agree to the{' '}
-                  <Link to="/terms" className="text-primary-600 hover:text-primary-700 font-medium">
-                    Terms of Service
-                  </Link>{' '}
-                  and{' '}
-                  <Link to="/privacy" className="text-primary-600 hover:text-primary-700 font-medium">
-                    Privacy Policy
-                  </Link>
-                </label>
+
+              <div className="space-y-2">
+                <div className="flex items-start space-x-3">
+                  <Checkbox
+                    id="agree_to_terms"
+                    checked={formData.agree_to_terms}
+                    onCheckedChange={(checked) => handleFieldChange('agree_to_terms', checked)}
+                    disabled={loading}
+                  />
+                  <label htmlFor="agree_to_terms" className="text-sm text-gray-700">
+                    I agree to the{' '}
+                    <Link to="/terms" className="text-primary-600 hover:text-primary-700 font-medium">
+                      Terms of Service
+                    </Link>{' '}
+                    and{' '}
+                    <Link to="/privacy" className="text-primary-600 hover:text-primary-700 font-medium">
+                      Privacy Policy
+                    </Link>
+                  </label>
+                </div>
+                {getFieldError('agree_to_terms') && (
+                  <p className="text-xs text-red-500">{getFieldError('agree_to_terms')}</p>
+                )}
               </div>
-              
-              <Button type="submit" className="w-full h-12 text-base font-semibold bg-primary-600 hover:bg-primary-700 text-white">
-                Create Account
+
+              <Button 
+                type="submit" 
+                className="w-full h-12 text-base font-semibold bg-primary-600 hover:bg-primary-700 text-white"
+                disabled={loading}
+              >
+                {loading ? 'Creating Account...' : 'Create Account'}
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </form>
-            
-            <div className="mt-6">
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-gray-200" />
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="bg-white px-4 text-gray-500 font-medium">
-                    Or continue with
-                  </span>
-                </div>
-              </div>
-              
-              <div className="mt-4 grid grid-cols-2 gap-3">
-                <Button
-                  variant="outline"
-                  onClick={() => handleSocialLogin('google')}
-                  className="w-full h-12 font-semibold"
-                >
-                  <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24">
-                    <path
-                      fill="currentColor"
-                      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                    />
-                    <path
-                      fill="currentColor"
-                      d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                    />
-                    <path
-                      fill="currentColor"
-                      d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                    />
-                    <path
-                      fill="currentColor"
-                      d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                    />
-                  </svg>
-                  Google
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => handleSocialLogin('facebook')}
-                  className="w-full h-12 font-semibold"
-                >
-                  <svg className="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                  </svg>
-                  Facebook
-                </Button>
-              </div>
-            </div>
-            
+
             <div className="mt-6 text-center">
               <span className="text-sm text-gray-600">Already have an account? </span>
               <Link to="/login" className="text-sm text-primary-600 hover:text-primary-700 font-semibold">
-                Sign in here
+                Sign in
               </Link>
             </div>
           </CardContent>

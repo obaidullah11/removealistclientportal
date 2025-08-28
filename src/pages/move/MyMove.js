@@ -13,13 +13,18 @@ import {
   DollarSign,
   Sparkles,
   Check,
-  Image // Added Image import
+  Image,
+  Loader2
 } from 'lucide-react'
 import { Button } from '../../components/ui/button'
 import { Input } from '../../components/ui/input'
 import { Card } from '../../components/ui/card'
 import { Progress } from '../../components/ui/progress'
-// Removed Switch import to avoid dependency conflict
+import { useAuth } from '../../contexts/AuthContext'
+import { moveAPI } from '../../lib/api'
+import { showSuccess, showError } from '../../lib/snackbar'
+import { validateMoveDate, validateAddress } from '../../lib/validation'
+
 // Static address suggestions
 const addressSuggestions = [
   "123 Main Street, New York, NY 10001",
@@ -63,21 +68,25 @@ const steps = [
   }
 ]
 
-export default function CreateMove() {
+export default function MyMove() {
+  const { user } = useAuth()
   const [currentStep, setCurrentStep] = useState(1)
+  const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState({
     moveDate: '',
     fromAddress: '',
     toAddress: '',
     currentPropertyType: '',
     newPropertyType: '',
+    currentPropertySize: '',
+    newPropertySize: '',
     currentOwnershipType: '',
     newOwnershipType: '',
     currentFloorPlan: null,
     newFloorPlan: null,
     hasChildren: false,
     hasPets: false,
-    hasMovers: false, // Added movers toggle
+    hasMovers: false,
     budget: ''
   })
   
@@ -88,20 +97,118 @@ export default function CreateMove() {
   const progress = (currentStep / steps.length) * 100
   const currentStepData = steps[currentStep - 1]
 
-  const nextStep = () => {
+  const validateCurrentStep = () => {
+    switch (currentStep) {
+      case 1:
+        const dateError = validateMoveDate(formData.moveDate)
+        if (dateError) {
+          showError(dateError)
+          return false
+        }
+        return true
+      case 2:
+        const fromAddressError = validateAddress(formData.fromAddress)
+        if (fromAddressError) {
+          showError(`From address: ${fromAddressError}`)
+          return false
+        }
+        const toAddressError = validateAddress(formData.toAddress)
+        if (toAddressError) {
+          showError(`To address: ${toAddressError}`)
+          return false
+        }
+        if (!formData.currentPropertyType) {
+          showError('Please select your current property type')
+          return false
+        }
+        if (!formData.newPropertyType) {
+          showError('Please select your new property type')
+          return false
+        }
+        if (!formData.currentPropertySize) {
+          showError('Please select your current property size')
+          return false
+        }
+        if (!formData.newPropertySize) {
+          showError('Please select your new property size')
+          return false
+        }
+        return true
+      case 3:
+        return true // Optional step
+      case 4:
+        return true // Optional step
+      default:
+        return true
+    }
+  }
+
+  const nextStep = async () => {
     if (currentStep < steps.length) {
-      setCurrentStep(currentStep + 1)
+      if (validateCurrentStep()) {
+        setCurrentStep(currentStep + 1)
+      }
     } else {
       // Complete the wizard
-      console.log('Creating move project:', formData)
-      alert('🎉 Your move project has been created! Redirecting to your timeline...')
-      window.location.href = '/timeline'
+      await handleSubmit()
     }
   }
 
   const prevStep = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1)
+    }
+  }
+
+  const handleSubmit = async () => {
+    setIsLoading(true)
+    
+    try {
+      const moveData = {
+        move_date: formData.moveDate,
+        current_location: formData.fromAddress,
+        destination_location: formData.toAddress,
+        from_property_type: formData.currentPropertyType,
+        from_property_size: formData.currentPropertySize,
+        to_property_type: formData.newPropertyType,
+        to_property_size: formData.newPropertySize,
+        special_items: [
+          formData.hasChildren && 'Moving with children',
+          formData.hasPets && 'Moving with pets', 
+          formData.hasMovers && 'Professional movers needed'
+        ].filter(Boolean).join(', '),
+        estimated_budget: formData.budget ? (
+          typeof formData.budget === 'string' && formData.budget.includes('-') 
+            ? parseFloat(formData.budget.split('-')[1]) 
+            : parseFloat(formData.budget)
+        ) : null,
+        first_name: user?.first_name || '',
+        last_name: user?.last_name || '',
+        email: user?.email || ''
+      }
+
+      const response = await moveAPI.createMove(moveData)
+      
+      if (response.success) {
+        showSuccess('🎉 Your move project has been created! Redirecting to book time...')
+        
+        // Store move ID in session storage
+        if (response.data && response.data.id) {
+          sessionStorage.setItem('currentMoveId', response.data.id)
+        }
+        
+        // Redirect to book time after a short delay
+        setTimeout(() => {
+          window.location.href = '/book-time'
+        }, 2000)
+      } else {
+        showError(response.message || 'Failed to create move. Please try again.')
+        setIsLoading(false)
+      }
+    } catch (error) {
+      console.error('Error creating move:', error)
+      showError(error.message || 'Failed to create move. Please try again.')
+      setIsLoading(false)
     }
   }
 
@@ -146,17 +253,6 @@ export default function CreateMove() {
     if (file) {
       setFormData(prev => ({ ...prev, [field]: file }))
     }
-  }
-
-  const generateRooms = () => {
-    // Mock AI generation with animation
-    const button = document.querySelector('.ai-generate-btn')
-    button.classList.add('animate-pulse-glow')
-    
-    setTimeout(() => {
-      button.classList.remove('animate-pulse-glow')
-      alert('🤖 AI Magic! We\'ve detected: Living Room, Kitchen, 2 Bedrooms, 1 Bathroom. You can edit these later!')
-    }, 2000)
   }
 
   const renderStep = () => {
@@ -289,6 +385,33 @@ export default function CreateMove() {
                   </div>
                 </div>
 
+                {/* Property Size for Current Location */}
+                <div className="space-y-3">
+                  <label className="block text-sm font-semibold text-gray-700">Property Size</label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { value: 'studio', emoji: '🏠', label: 'Studio' },
+                      { value: '1bedroom', emoji: '🏡', label: '1 Bedroom' },
+                      { value: '2bedroom', emoji: '🏘️', label: '2 Bedrooms' },
+                      { value: '3bedroom', emoji: '🏰', label: '3+ Bedrooms' }
+                    ].map((option) => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        className={`p-3 border-2 rounded-xl text-center transition-all hover:scale-105 ${
+                          formData.currentPropertySize === option.value 
+                            ? 'border-teal-500 bg-teal-50 shadow-lg' 
+                            : 'border-gray-200 hover:border-gray-300 bg-white'
+                        }`}
+                        onClick={() => setFormData({ ...formData, currentPropertySize: option.value })}
+                      >
+                        <div className="text-xl mb-1">{option.emoji}</div>
+                        <div className="font-semibold text-gray-900 text-xs">{option.label}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 {/* Ownership for Current Location */}
                 <div className="space-y-3">
                   <label className="block text-sm font-semibold text-gray-700">Ownership</label>
@@ -410,6 +533,33 @@ export default function CreateMove() {
                       >
                         <div className="text-2xl mb-2">{option.emoji}</div>
                         <div className="font-semibold text-gray-900 text-sm">{option.label}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Property Size for New Location */}
+                <div className="space-y-3">
+                  <label className="block text-sm font-semibold text-gray-700">Property Size</label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { value: 'studio', emoji: '🏠', label: 'Studio' },
+                      { value: '1bedroom', emoji: '🏡', label: '1 Bedroom' },
+                      { value: '2bedroom', emoji: '🏘️', label: '2 Bedrooms' },
+                      { value: '3bedroom', emoji: '🏰', label: '3+ Bedrooms' }
+                    ].map((option) => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        className={`p-3 border-2 rounded-xl text-center transition-all hover:scale-105 ${
+                          formData.newPropertySize === option.value 
+                            ? 'border-teal-500 bg-teal-50 shadow-lg' 
+                            : 'border-gray-200 hover:border-gray-300 bg-white'
+                        }`}
+                        onClick={() => setFormData({ ...formData, newPropertySize: option.value })}
+                      >
+                        <div className="text-xl mb-1">{option.emoji}</div>
+                        <div className="font-semibold text-gray-900 text-xs">{option.label}</div>
                       </button>
                     ))}
                   </div>
@@ -629,13 +779,7 @@ export default function CreateMove() {
                     }`}
                     onClick={() => setFormData({ ...formData, budget: budget.value })}
                   >
-                    {budget.popular && (
-                      <div className="absolute -top-2 left-1/2 transform -translate-x-1/2">
-                        <span className="bg-primary-600 text-white px-3 py-1 rounded-full text-xs font-semibold">
-                          Most Popular
-                        </span>
-                      </div>
-                    )}
+                    
                     <div className="font-semibold text-gray-900">{budget.label}</div>
                   </button>
                 ))}
@@ -663,7 +807,10 @@ export default function CreateMove() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      {/* Hero Section with Landing Page Style */}
+     
+
       {/* Progress Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-4xl mx-auto px-4 py-6">
@@ -726,10 +873,15 @@ export default function CreateMove() {
           
           <Button 
             onClick={nextStep} 
-            className="h-12 px-8 font-semibold"
-            variant="gradient"
+            disabled={isLoading}
+            className="h-12 px-8 font-semibold bg-sustainableGreen hover:from-blue-700 hover:to-purple-700"
           >
-            {currentStep === steps.length ? (
+            {isLoading ? (
+              <>
+                <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                Creating...
+              </>
+            ) : currentStep === steps.length ? (
               <>
                 Create My Move
                 <Sparkles className="ml-2 h-5 w-5" />

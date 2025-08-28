@@ -1,14 +1,24 @@
 import React, { useState, useEffect } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Menu, X, Bell } from 'lucide-react'
+import { Menu, X, Bell, User, LogOut, Settings, Info } from 'lucide-react'
 import { Button } from '../ui/button'
 import { useAuth } from '../../contexts/AuthContext'
+import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar'
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
+} from '../ui/dropdown-menu'
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const { isAuthenticated, logout } = useAuth()
+  const { isAuthenticated, logout, user } = useAuth()
   const location = useLocation()
+  const navigate = useNavigate()
 
   // Navigation items for non-authenticated users
   const publicNavigation = [
@@ -20,11 +30,10 @@ export default function Navbar() {
   // Full navigation for authenticated users
   const fullNavigation = [
     { name: 'Home', href: '/' },
-    { name: 'My Move', href: '/move' },
+    { name: 'My Move', href: '/my-move' },
     { name: 'Timeline', href: '/timeline' },
     { name: 'Inventory', href: '/inventory' },
-    { name: 'Services', href: '/services' },
-    { name: 'Tips', href: '/tips' }
+    { name: 'Book Time', href: '/book-time' }
   ]
 
   // Use appropriate navigation based on authentication status
@@ -35,7 +44,35 @@ export default function Navbar() {
   const handleLogout = () => {
     logout()
     // Redirect to home page after logout
-    window.location.href = '/'
+    navigate('/')
+  }
+  
+  const navigateToProfile = () => {
+    navigate('/profile')
+  }
+
+  // Get user display name
+  const getUserDisplayName = () => {
+    if (user?.first_name && user?.last_name) {
+      return `${user.first_name} ${user.last_name}`
+    } else if (user?.first_name) {
+      return user.first_name
+    } else if (user?.email) {
+      return user.email.split('@')[0]
+    }
+    return 'User'
+  }
+
+  // Get user initials for avatar
+  const getUserInitials = () => {
+    if (user?.first_name && user?.last_name) {
+      return `${user.first_name.charAt(0)}${user.last_name.charAt(0)}`.toUpperCase()
+    } else if (user?.first_name) {
+      return user.first_name.charAt(0).toUpperCase()
+    } else if (user?.email) {
+      return user.email.charAt(0).toUpperCase()
+    }
+    return 'U'
   }
 
   return (
@@ -46,7 +83,6 @@ export default function Navbar() {
           <div className="flex-shrink-0">
             <Link to="/" className="flex items-center space-x-2">
               <img src="/images/logo.png" alt="logo" className="w-25 h-12" />
-             
             </Link>
           </div>
 
@@ -75,9 +111,37 @@ export default function Navbar() {
                 <Button variant="ghost" size="icon">
                   <Bell className="h-5 w-5" />
                 </Button>
-                <Button onClick={handleLogout} variant="ghost" className="text-gray-700 hover:text-red-600">
-                  Logout
-                </Button>
+                
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <div className="flex items-center gap-2 cursor-pointer">
+                      <Avatar>
+                        {user?.avatar ? (
+                          <AvatarImage src={user.avatar} alt={getUserDisplayName()} />
+                        ) : (
+                          <AvatarFallback>
+                            {getUserInitials()}
+                          </AvatarFallback>
+                        )}
+                      </Avatar>
+                      <span className="hidden md:inline text-sm font-medium">
+                        {getUserDisplayName()}
+                      </span>
+                    </div>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={navigateToProfile} className="cursor-pointer">
+                      <User className="mr-2 h-4 w-4" />
+                      <span>Profile</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600 hover:text-red-700">
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <span>Logout</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </>
             ) : (
               <>
@@ -137,13 +201,41 @@ export default function Navbar() {
             {/* Mobile auth buttons */}
             <div className="pt-3 space-y-3 border-t border-gray-200">
               {isAuthenticated ? (
-                <Button 
-                  onClick={handleLogout} 
-                  variant="ghost" 
-                  className="w-full text-gray-700 hover:text-red-600"
-                >
-                  Logout
-                </Button>
+                <>
+                  <div className="flex items-center space-x-3 mb-3">
+                    <Avatar>
+                      {user?.avatar ? (
+                        <AvatarImage src={user.avatar} alt={getUserDisplayName()} />
+                      ) : (
+                        <AvatarFallback>
+                          {getUserInitials()}
+                        </AvatarFallback>
+                      )}
+                    </Avatar>
+                    <div>
+                      <p className="font-medium">{getUserDisplayName()}</p>
+                      <p className="text-xs text-gray-500">{user?.email || ""}</p>
+                    </div>
+                  </div>
+                  
+                  <Button 
+                    onClick={navigateToProfile} 
+                    variant="ghost" 
+                    className="w-full text-gray-700 hover:text-primary-600 justify-start"
+                  >
+                    <User className="h-4 w-4 mr-2" />
+                    Profile
+                  </Button>
+                  
+                  <Button 
+                    onClick={handleLogout} 
+                    variant="ghost" 
+                    className="w-full text-gray-700 hover:text-red-600 justify-start"
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Logout
+                  </Button>
+                </>
               ) : (
                 <>
                   <Link to="/login" className="block">
