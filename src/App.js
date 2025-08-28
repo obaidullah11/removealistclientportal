@@ -13,6 +13,7 @@ import Hero from './components/Hero'
 import Features from './components/Features'
 import HowItWorks from './components/HowItWorks'
 import Discounts from './components/Discounts'
+import PartnerSection from './components/PartnerSection'
 import Footer from './components/Footer'
 
 // Auth Pages
@@ -41,8 +42,9 @@ function LandingPage() {
       <Navbar />
       <Hero />
       <Features />
-      <HowItWorks />
+      <PartnerSection />
       <Discounts />
+      
       <Footer />
     </div>
   )

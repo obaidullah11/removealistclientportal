@@ -49,8 +49,7 @@ const Hero = () => {
             </h1>
 
             <p className="text-xl text-gray-600 mb-8">
-              RemoveAList is your personal moving project manager. We create personalized plans, 
-              automate address updates, coordinate eco-friendly services, and get quotes from trusted partners.
+            RemoveAlist is a unique AI-powered platform designed to provide a personalised concierge service for a truly stress-free moving experience. By streamlining every step, RemoveAlist helps users save both time and money, while ensuring a smooth transition. 
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 mb-2">

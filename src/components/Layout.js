@@ -22,8 +22,6 @@ const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: Home },
   { name: 'Timeline', href: '/moving/timeline', icon: Calendar },
   { name: 'Checklist', href: '/moving/checklist', icon: CheckSquare },
-  { name: 'Tips', href: '/moving/tips', icon: Lightbulb },
-  { name: 'Inventory', href: '/inventory', icon: Package },
   { name: 'Tasks', href: '/tasks', icon: ClipboardList },
   { name: 'Services', href: '/services', icon: Briefcase },
   { name: 'Collaboration', href: '/collaboration', icon: Users },

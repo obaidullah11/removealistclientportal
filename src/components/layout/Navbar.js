@@ -24,8 +24,7 @@ export default function Navbar() {
   const publicNavigation = [
     { name: 'Home', href: '/' },
     { name: 'Services', href: '/services' },
-    { name: 'Partners', href: '/partners' },
-    { name: 'Tips', href: '/tips' }
+    { name: 'Partners', href: '/partners' }
   ]
 
   // Full navigation for authenticated users
@@ -33,7 +32,6 @@ export default function Navbar() {
     { name: 'Home', href: '/' },
     { name: 'My Move', href: '/my-move' },
     { name: 'Timeline', href: '/timeline' },
-    { name: 'Inventory', href: '/inventory' },
     { name: 'Partners', href: '/partners' },
     { name: 'Book Time', href: '/book-time' }
   ]

@@ -187,7 +187,8 @@ export default function Signup() {
           <CardHeader className="text-center pb-2">
             <CardTitle className="text-2xl font-bold">Create Your Account</CardTitle>
             <CardDescription className="text-base">
-              Join thousands of users who trust RemoveList for their moves
+            Register for an AI-powered personalised moving plan.
+
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-6">
