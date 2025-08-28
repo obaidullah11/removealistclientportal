@@ -12,6 +12,7 @@ import Navbar from './components/layout/Navbar'
 import Hero from './components/Hero'
 import Features from './components/Features'
 import HowItWorks from './components/HowItWorks'
+import Discounts from './components/Discounts'
 import Footer from './components/Footer'
 
 // Auth Pages
@@ -31,6 +32,7 @@ import Inventory from './pages/inventory/Inventory'
 import MyMove from './pages/move/MyMove'
 import BookTime from './pages/move/BookTime'
 import Profile from './pages/Profile'
+import Partners from './pages/Partners'
 
 // Landing Page Component
 function LandingPage() {
@@ -40,6 +42,7 @@ function LandingPage() {
       <Hero />
       <Features />
       <HowItWorks />
+      <Discounts />
       <Footer />
     </div>
   )
@@ -77,6 +80,7 @@ function App() {
             <Routes>
               {/* Public Routes */}
               <Route path="/" element={<LandingPage />} />
+              <Route path="/partners" element={<Partners />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/reset-password" element={<ResetPassword />} />

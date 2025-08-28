@@ -368,9 +368,9 @@ export default function BookTime() {
       >
         <Card className="shadow-md">
           <CardHeader>
-            <CardTitle className="text-2xl font-bold">Book Your Move Time</CardTitle>
+            <CardTitle className="text-2xl font-bold">Book your Appointment</CardTitle>
             <CardDescription>
-              Select a convenient time for our team to help with your move
+            Schedule a convenient time for our concierge team to connect with you. Once booked, we’ll give you a call to discuss your needs and begin planning everything offline, personalized, stress-free, and tailored to you.
             </CardDescription>
           </CardHeader>
           <CardContent>

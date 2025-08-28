@@ -22,11 +22,18 @@ const Footer = () => {
         <div className="grid md:grid-cols-2 lg:grid-cols-6 gap-8">
           {/* Brand */}
           <div className="lg:col-span-2">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-primary-600 rounded-lg flex items-center justify-center">
-                <Leaf className="w-6 h-6 text-white" />
-              </div>
-              <span className="font-bold text-xl">RemoveAList</span>
+            <div className="flex items-center gap-1 mb-4">
+              
+              <img 
+      src="/images/footer_logo.jpg"// <-- your image path here
+      alt="Logo"
+      className="w-12 h-8 object-contain"
+    />
+            
+            <span className="font-bold text-xl">
+  Remove<span className="italic">A</span>List
+</span>
+
             </div>
             <p className="text-gray-400 mb-6">
               AI-powered, sustainability-first moving project management for Australia.
