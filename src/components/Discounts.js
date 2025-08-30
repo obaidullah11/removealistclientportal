@@ -1,49 +1,50 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { Home, Users, Heart, CheckCircle, Percent } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import React from "react";
+import { motion } from "framer-motion";
+import { Home, Users, Heart, CheckCircle, Percent } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 
 const Discounts = () => {
   const discountOptions = [
     {
-      id: 'first-home-buyer',
-      title: 'First Home Buyer',
-      description: 'Special discount for first-time home buyers starting their journey',
-      discount: '15% OFF',
+      id: "first-home-buyer",
+      title: "First Home Buyer",
+      description:
+        "Special discount for first-time home buyers starting their journey",
+      discount: "15% OFF",
       icon: Home,
       benefits: [
-        'Priority booking slots',
-        'Free moving consultation',
-        'Complimentary packing materials',
-        'First-time buyer support guide'
-      ]
+        "Priority booking slots",
+        // 'Free moving consultation',
+        // 'Complimentary packing materials',
+        "First-time buyer support guide",
+      ],
     },
     {
-      id: 'seniors-discount',
-      title: 'Seniors Discount',
-      description: 'Exclusive savings and specialized care for seniors (65+)',
-      discount: '20% OFF',
+      id: "seniors-discount",
+      title: "Seniors Discount",
+      description: "Exclusive savings and specialized care for seniors (65+)",
+      discount: "20% OFF",
       icon: Heart,
       benefits: [
-        'Gentle handling guarantee',
-        'Extended service hours',
-        'Senior-friendly support team',
-        'Medical equipment care'
-      ]
+        "Gentle handling guarantee",
+        "Extended service hours",
+        "Senior-friendly support team",
+        "Medical equipment care",
+      ],
     },
     {
-      id: 'single-parent',
-      title: 'Single Parent',
-      description: 'Supporting single-parent families with flexible solutions',
-      discount: '18% OFF',
+      id: "single-parent",
+      title: "Single Parent",
+      description: "Supporting single-parent families with flexible solutions",
+      discount: "18% OFF",
       icon: Users,
       benefits: [
-        'Flexible payment options',
-        'Child-safe moving practices',
-        'Weekend availability',
-        'Family support resources'
-      ]
-    }
+        "Flexible payment options",
+        "Child-safe moving practices",
+        "Weekend availability",
+        "Family support resources",
+      ],
+    },
   ];
 
   const containerVariants = {
@@ -51,24 +52,24 @@ const Discounts = () => {
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.2
-      }
-    }
+        staggerChildren: 0.2,
+      },
+    },
   };
 
   const cardVariants = {
-    hidden: { 
-      opacity: 0, 
-      y: 30 
+    hidden: {
+      opacity: 0,
+      y: 30,
     },
-    visible: { 
-      opacity: 1, 
+    visible: {
+      opacity: 1,
       y: 0,
       transition: {
         duration: 0.6,
-        ease: "easeOut"
-      }
-    }
+        ease: "easeOut",
+      },
+    },
   };
 
   return (
@@ -91,8 +92,9 @@ const Discounts = () => {
             </h2>
           </div>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            We believe everyone deserves affordable, quality moving services. 
-            Check out our special discount programs designed for different life situations.
+            We believe everyone deserves affordable, quality moving services.
+            Check out our special discount programs designed for different life
+            situations.
           </p>
         </motion.div>
 
@@ -106,14 +108,14 @@ const Discounts = () => {
         >
           {discountOptions.map((option, index) => {
             const IconComponent = option.icon;
-            
+
             return (
               <motion.div
                 key={option.id}
                 variants={cardVariants}
-                whileHover={{ 
+                whileHover={{
                   scale: 1.05,
-                  transition: { duration: 0.2 }
+                  transition: { duration: 0.2 },
                 }}
                 className="h-full"
               >
@@ -127,15 +129,13 @@ const Discounts = () => {
                       {option.discount}
                     </div>
                   </div>
-                  
+
                   {/* Title and Description */}
                   <h3 className="text-2xl font-bold text-gray-900 mb-4">
                     {option.title}
                   </h3>
-                  <p className="text-gray-600 mb-6">
-                    {option.description}
-                  </p>
-                  
+                  <p className="text-gray-600 mb-6">{option.description}</p>
+
                   {/* Benefits List */}
                   <div className="flex-grow">
                     <h4 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
@@ -149,9 +149,9 @@ const Discounts = () => {
                           initial={{ opacity: 0, x: -10 }}
                           whileInView={{ opacity: 1, x: 0 }}
                           viewport={{ once: true }}
-                          transition={{ 
-                            duration: 0.4, 
-                            delay: 0.1 * benefitIndex 
+                          transition={{
+                            duration: 0.4,
+                            delay: 0.1 * benefitIndex,
                           }}
                           className="flex items-start gap-2 text-gray-600"
                         >
@@ -172,8 +172,6 @@ const Discounts = () => {
           })}
         </motion.div>
 
-
-
         {/* Terms */}
         <motion.div
           initial={{ opacity: 0 }}
@@ -183,8 +181,8 @@ const Discounts = () => {
           className="text-center mt-8"
         >
           <p className="text-sm text-gray-500">
-            * Terms and conditions apply. Discounts cannot be combined with other offers. 
-            Verification may be required for eligibility.
+            * Terms and conditions apply. Discounts cannot be combined with
+            other offers. Verification may be required for eligibility.
           </p>
         </motion.div>
       </div>

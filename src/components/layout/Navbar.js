@@ -1,79 +1,83 @@
-import React, { useState, useEffect } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import { Menu, X, Bell, User, LogOut, Settings, Info } from 'lucide-react'
-import { Button } from '../ui/button'
-import { useAuth } from '../../contexts/AuthContext'
-import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar'
-import { 
+import React, { useState, useEffect } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { Menu, X, Bell, User, LogOut, Settings, Info } from "lucide-react";
+import { Button } from "../ui/button";
+import { useAuth } from "../../contexts/AuthContext";
+import { Avatar, AvatarImage, AvatarFallback } from "../ui/avatar";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from '../ui/dropdown-menu'
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
 
 export default function Navbar() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const { isAuthenticated, logout, user } = useAuth()
-  const location = useLocation()
-  const navigate = useNavigate()
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { isAuthenticated, logout, user } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
 
   // Navigation items for non-authenticated users
   const publicNavigation = [
-    { name: 'Home', href: '/' },
-    { name: 'Services', href: '/services' },
-    { name: 'Partners', href: '/partners' }
-  ]
+    { name: "Home", href: "/" },
+    { name: "Services", href: "/services" },
+    { name: "Partners", href: "/partners" },
+  ];
 
   // Full navigation for authenticated users
   const fullNavigation = [
-    { name: 'Home', href: '/' },
-    { name: 'My Move', href: '/my-move' },
-    { name: 'Timeline', href: '/timeline' },
-    { name: 'Partners', href: '/partners' },
-    { name: 'Book Time', href: '/book-time' }
-  ]
+    { name: "Home", href: "/" },
+    // { name: "My Move", href: "/my-move" },
+    { name: "My Moves", href: "/user-moves" },
+    { name: "Timeline", href: "/timeline" },
+    { name: "Partners", href: "/partners" },
+    { name: "My Bookings", href: "/my-bookings" },
+    // { name: "Book Time", href: "/book-time" },
+  ];
 
   // Use appropriate navigation based on authentication status
-  const navigation = isAuthenticated ? fullNavigation : publicNavigation
+  const navigation = isAuthenticated ? fullNavigation : publicNavigation;
 
-  const isActive = (path) => location.pathname === path
+  const isActive = (path) => location.pathname === path;
 
   const handleLogout = () => {
-    logout()
+    logout();
     // Redirect to home page after logout
-    navigate('/')
-  }
-  
+    navigate("/");
+  };
+
   const navigateToProfile = () => {
-    navigate('/profile')
-  }
+    navigate("/profile");
+  };
 
   // Get user display name
   const getUserDisplayName = () => {
     if (user?.first_name && user?.last_name) {
-      return `${user.first_name} ${user.last_name}`
+      return `${user.first_name} ${user.last_name}`;
     } else if (user?.first_name) {
-      return user.first_name
+      return user.first_name;
     } else if (user?.email) {
-      return user.email.split('@')[0]
+      return user.email.split("@")[0];
     }
-    return 'User'
-  }
+    return "User";
+  };
 
   // Get user initials for avatar
   const getUserInitials = () => {
     if (user?.first_name && user?.last_name) {
-      return `${user.first_name.charAt(0)}${user.last_name.charAt(0)}`.toUpperCase()
+      return `${user.first_name.charAt(0)}${user.last_name.charAt(
+        0
+      )}`.toUpperCase();
     } else if (user?.first_name) {
-      return user.first_name.charAt(0).toUpperCase()
+      return user.first_name.charAt(0).toUpperCase();
     } else if (user?.email) {
-      return user.email.charAt(0).toUpperCase()
+      return user.email.charAt(0).toUpperCase();
     }
-    return 'U'
-  }
+    return "U";
+  };
 
   return (
     <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-200 shadow-sm">
@@ -94,8 +98,8 @@ export default function Navbar() {
                 to={item.href}
                 className={`text-sm font-medium transition-colors ${
                   isActive(item.href)
-                    ? 'text-primary-600'
-                    : 'text-gray-700 hover:text-primary-600'
+                    ? "text-primary-600"
+                    : "text-gray-700 hover:text-primary-600"
                 }`}
               >
                 {item.name}
@@ -111,17 +115,18 @@ export default function Navbar() {
                 <Button variant="ghost" size="icon">
                   <Bell className="h-5 w-5" />
                 </Button>
-                
+
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <div className="flex items-center gap-2 cursor-pointer">
                       <Avatar>
                         {user?.avatar ? (
-                          <AvatarImage src={user.avatar} alt={getUserDisplayName()} />
+                          <AvatarImage
+                            src={user.avatar}
+                            alt={getUserDisplayName()}
+                          />
                         ) : (
-                          <AvatarFallback>
-                            {getUserInitials()}
-                          </AvatarFallback>
+                          <AvatarFallback>{getUserInitials()}</AvatarFallback>
                         )}
                       </Avatar>
                       <span className="hidden md:inline text-sm font-medium">
@@ -132,11 +137,17 @@ export default function Navbar() {
                   <DropdownMenuContent align="end" className="w-56">
                     <DropdownMenuLabel>My Account</DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={navigateToProfile} className="cursor-pointer">
+                    <DropdownMenuItem
+                      onClick={navigateToProfile}
+                      className="cursor-pointer"
+                    >
                       <User className="mr-2 h-4 w-4" />
                       <span>Profile</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600 hover:text-red-700">
+                    <DropdownMenuItem
+                      onClick={handleLogout}
+                      className="cursor-pointer text-red-600 hover:text-red-700"
+                    >
                       <LogOut className="mr-2 h-4 w-4" />
                       <span>Logout</span>
                     </DropdownMenuItem>
@@ -147,7 +158,10 @@ export default function Navbar() {
               <>
                 {/* Login/Signup buttons for non-authenticated users */}
                 <Link to="/login">
-                  <Button variant="ghost" className="text-gray-700 hover:text-primary-600 font-medium">
+                  <Button
+                    variant="ghost"
+                    className="text-gray-700 hover:text-primary-600 font-medium"
+                  >
                     Sign In
                   </Button>
                 </Link>
@@ -168,7 +182,11 @@ export default function Navbar() {
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="w-10 h-10"
             >
-              {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              {isMenuOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
             </Button>
           </div>
         </div>
@@ -178,7 +196,7 @@ export default function Navbar() {
       {isMenuOpen && (
         <motion.div
           initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
+          animate={{ opacity: 1, height: "auto" }}
           exit={{ opacity: 0, height: 0 }}
           className="md:hidden bg-white border-t border-gray-200"
         >
@@ -189,15 +207,15 @@ export default function Navbar() {
                 to={item.href}
                 className={`block py-2 text-sm font-medium transition-colors ${
                   isActive(item.href)
-                    ? 'text-primary-600'
-                    : 'text-gray-700 hover:text-primary-600'
+                    ? "text-primary-600"
+                    : "text-gray-700 hover:text-primary-600"
                 }`}
                 onClick={() => setIsMenuOpen(false)}
               >
                 {item.name}
               </Link>
             ))}
-            
+
             {/* Mobile auth buttons */}
             <div className="pt-3 space-y-3 border-t border-gray-200">
               {isAuthenticated ? (
@@ -205,31 +223,34 @@ export default function Navbar() {
                   <div className="flex items-center space-x-3 mb-3">
                     <Avatar>
                       {user?.avatar ? (
-                        <AvatarImage src={user.avatar} alt={getUserDisplayName()} />
+                        <AvatarImage
+                          src={user.avatar}
+                          alt={getUserDisplayName()}
+                        />
                       ) : (
-                        <AvatarFallback>
-                          {getUserInitials()}
-                        </AvatarFallback>
+                        <AvatarFallback>{getUserInitials()}</AvatarFallback>
                       )}
                     </Avatar>
                     <div>
                       <p className="font-medium">{getUserDisplayName()}</p>
-                      <p className="text-xs text-gray-500">{user?.email || ""}</p>
+                      <p className="text-xs text-gray-500">
+                        {user?.email || ""}
+                      </p>
                     </div>
                   </div>
-                  
-                  <Button 
-                    onClick={navigateToProfile} 
-                    variant="ghost" 
+
+                  <Button
+                    onClick={navigateToProfile}
+                    variant="ghost"
                     className="w-full text-gray-700 hover:text-primary-600 justify-start"
                   >
                     <User className="h-4 w-4 mr-2" />
                     Profile
                   </Button>
-                  
-                  <Button 
-                    onClick={handleLogout} 
-                    variant="ghost" 
+
+                  <Button
+                    onClick={handleLogout}
+                    variant="ghost"
                     className="w-full text-gray-700 hover:text-red-600 justify-start"
                   >
                     <LogOut className="h-4 w-4 mr-2" />
@@ -239,7 +260,10 @@ export default function Navbar() {
               ) : (
                 <>
                   <Link to="/login" className="block">
-                    <Button variant="ghost" className="w-full text-gray-700 hover:text-primary-600">
+                    <Button
+                      variant="ghost"
+                      className="w-full text-gray-700 hover:text-primary-600"
+                    >
                       Sign In
                     </Button>
                   </Link>
@@ -255,5 +279,5 @@ export default function Navbar() {
         </motion.div>
       )}
     </nav>
-  )
+  );
 }
