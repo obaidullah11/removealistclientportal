@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../..
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs'
 import { useAuth } from '../../contexts/AuthContext'
 import { validateField } from '../../lib/validation'
+import { moveAPI } from '../../lib/api'
 
 export default function Login() {
   const { login } = useAuth()
@@ -64,9 +65,27 @@ export default function Login() {
           showSuccess('Login successful! Welcome back.')
         }
         
-        // Redirect to intended destination or default to /move
-        const from = location.state?.from?.pathname || '/move'
-        navigate('/my-move', { replace: true })
+        // Check if user has existing moves
+        try {
+          const movesResult = await moveAPI.getUserMoves()
+          if (movesResult.success) {
+            const userMoves = movesResult.data || []
+            
+            // If user has moves, redirect to home page, otherwise to move form
+            if (userMoves.length > 0) {
+              navigate('/', { replace: true })
+            } else {
+              navigate('/my-move', { replace: true })
+            }
+          } else {
+            // If API call fails, use default redirect
+            navigate('/my-move', { replace: true })
+          }
+        } catch (error) {
+          console.error('Error checking user moves:', error)
+          // Default redirect on error
+          navigate('/my-move', { replace: true })
+        }
       } else {
         // Handle specific error cases
         if (result.errors && result.errors.non_field_errors) {

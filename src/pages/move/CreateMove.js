@@ -203,7 +203,7 @@ export default function CreateMove() {
                 className="text-center text-lg h-14 text-gray-700 font-semibold"
                 min={new Date().toISOString().split("T")[0]}
               />
-              {formData.moveDate && (
+              {/* {formData.moveDate && (
                 <motion.p
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -211,7 +211,7 @@ export default function CreateMove() {
                 >
                   Perfect! That gives us time to plan everything properly ✨
                 </motion.p>
-              )}
+              )} */}
             </div>
           </motion.div>
         );

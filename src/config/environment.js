@@ -16,6 +16,7 @@ const config = {
   // External Services
   GOOGLE_CLIENT_ID: process.env.REACT_APP_GOOGLE_CLIENT_ID,
   FACEBOOK_APP_ID: process.env.REACT_APP_FACEBOOK_APP_ID,
+  GOOGLE_PLACES_API_KEY: process.env.REACT_APP_GOOGLE_PLACES_API_KEY|| 'AIzaSyBBbDRV4FhiuvhZHSoLq01yJo0DhHWK4Gw',
   
   // Analytics
   GA_TRACKING_ID: process.env.REACT_APP_GA_TRACKING_ID,

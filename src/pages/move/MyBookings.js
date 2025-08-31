@@ -56,11 +56,21 @@ function MyBookings() {
     try {
       const response = await bookingAPI.cancelBooking(id);
       if (response.success) {
-        setBookings((prev) => prev.filter((b) => b.id !== id));
+        // Update the booking status in the UI instead of removing it
+        setBookings((prev) => 
+          prev.map((booking) => 
+            booking.id === id 
+              ? { ...booking, status: 'cancelled' } 
+              : booking
+          )
+        );
+        console.log("Booking cancelled successfully:", response.data);
       } else {
+        console.error("Failed to cancel booking:", response);
         alert(response.message || "Failed to cancel booking");
       }
     } catch (err) {
+      console.error("Error cancelling booking:", err);
       alert("An unexpected error occurred while cancelling booking");
     }
   };
@@ -136,7 +146,7 @@ function MyBookings() {
             You don't have any bookings yet.
           </p>
           <Button
-            onClick={() => navigate("/move")}
+            onClick={() => navigate("/my-move")}
             className="bg-primary-600 hover:bg-primary-700"
           >
             Schedule a Move
@@ -242,19 +252,27 @@ function MyBookings() {
                   {/* Status & Actions */}
                   <div className="md:col-span-2 flex items-center justify-between">
                     <div className="flex items-center space-x-7">
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        {booking.status}
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                        booking.status === 'confirmed' ? 'bg-green-100 text-green-800' :
+                        booking.status === 'requested' ? 'bg-blue-100 text-blue-800' :
+                        booking.status === 'in_progress' ? 'bg-yellow-100 text-yellow-800' :
+                        booking.status === 'cancelled' ? 'bg-red-100 text-red-800' :
+                        booking.status === 'completed' ? 'bg-purple-100 text-purple-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
                       </span>
                       <Button
                         variant="destructive"
                         size="sm"
                         className="text-xs px-3 py-1.5"
+                        disabled={booking.status === 'cancelled' || booking.status === 'completed'}
                         onClick={(e) => {
                           e.stopPropagation();
                           handleCancel(booking.id);
                         }}
                       >
-                        Cancel
+                        {booking.status === 'cancelled' ? 'Cancelled' : 'Cancel'}
                       </Button>
                     </div>
                     <Button

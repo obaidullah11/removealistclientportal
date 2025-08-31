@@ -97,7 +97,7 @@ export default function BookTime() {
         // Check if there's already a booking for this move
         const existingBooking = response.data.find(booking => 
           booking.move_id === moveId && 
-          ['confirmed', 'in_progress'].includes(booking.status)
+          ['requested', 'in_progress'].includes(booking.status)
         )
         
         if (existingBooking) {
@@ -219,7 +219,7 @@ export default function BookTime() {
       if (response.success && response.data) {
         const existingBooking = response.data.find(booking => 
           booking.move_id === moveId && 
-          ['confirmed', 'in_progress'].includes(booking.status)
+          ['requested', 'in_progress'].includes(booking.status)
         )
         
         if (existingBooking) {
@@ -272,7 +272,7 @@ export default function BookTime() {
       const response = await bookingAPI.bookTimeSlot(bookingData)
       
       if (response.success) {
-        showSuccess('Booking confirmed successfully!')
+        showSuccess('Booking requested successfully!')
         setBookingComplete(true)
         
         // Clear the current move ID from session storage
@@ -368,9 +368,9 @@ export default function BookTime() {
       >
         <Card className="shadow-md">
           <CardHeader>
-            <CardTitle className="text-2xl font-bold">Book your Appointment</CardTitle>
+            <CardTitle className="text-2xl font-bold">Next Step</CardTitle>
             <CardDescription>
-            Schedule a convenient time for our concierge team to connect with you. Once booked, we’ll give you a call to discuss your needs and begin planning everything offline, personalized, stress-free, and tailored to you.
+            A member of the RemoveAlist team will be in touch shortly to walk you through a personalised, hassle-free plan designed specifically to suit your Move.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -386,9 +386,9 @@ export default function BookTime() {
                 </div>
                 
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-800">Booking Confirmed!</h3>
+                  <h3 className="text-lg font-semibold text-gray-800">Booking Requested!</h3>
                   <p className="text-gray-600 mt-2">
-                    Your move has been scheduled successfully. We'll be in touch shortly with additional details.
+                    Your move has been requested successfully. We'll be in touch shortly with additional details.
                   </p>
                 </div>
                 
@@ -406,7 +406,7 @@ export default function BookTime() {
                 </div>
                 
                 <Button 
-                  onClick={() => navigate('/move')}
+                  onClick={() => navigate('/user-moves')}
                   className="bg-primary-600 hover:bg-primary-700 text-white"
                 >
                   Go to Dashboard

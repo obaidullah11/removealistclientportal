@@ -325,7 +325,14 @@ export const bookingAPI = {
       body: JSON.stringify(bookingData),
     }),
 
+  // Get user bookings
   getUserBookings: () => apiCall("/booking/user-bookings/"),
+  
+  // Cancel booking
+  cancelBooking: (bookingId) =>
+    apiCall(`/booking/${bookingId}/cancel/`, {
+      method: "PATCH",
+    }),
 };
 
 // Inventory Management API

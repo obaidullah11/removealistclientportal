@@ -24,18 +24,9 @@ import { useAuth } from "../../contexts/AuthContext";
 import { moveAPI } from "../../lib/api";
 import { showSuccess, showError } from "../../lib/snackbar";
 import { validateMoveDate, validateAddress } from "../../lib/validation";
+import PlacesAutocomplete from "../../components/PlacesAutocomplete";
 
-// Static address suggestions
-const addressSuggestions = [
-  "123 Main Street, New York, NY 10001",
-  "456 Oak Avenue, Los Angeles, CA 90210",
-  "789 Pine Road, Chicago, IL 60601",
-  "321 Elm Drive, Houston, TX 77001",
-  "654 Maple Lane, Phoenix, AZ 85001",
-  "987 Cedar Court, Philadelphia, PA 19101",
-  "147 Birch Boulevard, San Antonio, TX 78201",
-  "258 Willow Way, San Diego, CA 92101",
-];
+
 
 const steps = [
   {
@@ -90,9 +81,7 @@ export default function MyMove() {
     budget: "",
   });
 
-  const [addressSuggestionsList, setAddressSuggestionsList] = useState([]);
-  const [showFromSuggestions, setShowFromSuggestions] = useState(false);
-  const [showToSuggestions, setShowToSuggestions] = useState(false);
+
 
   const progress = (currentStep / steps.length) * 100;
   const currentStepData = steps[currentStep - 1];
@@ -218,26 +207,7 @@ export default function MyMove() {
     }
   };
 
-  const handleAddressSearch = (value, type) => {
-    setFormData({ ...formData, [type]: value });
-    if (value.length > 2) {
-      const filtered = addressSuggestions.filter((addr) =>
-        addr.toLowerCase().includes(value.toLowerCase())
-      );
-      setAddressSuggestionsList(filtered);
-      if (type === "fromAddress") setShowFromSuggestions(true);
-      if (type === "toAddress") setShowToSuggestions(true);
-    } else {
-      setShowFromSuggestions(false);
-      setShowToSuggestions(false);
-    }
-  };
 
-  const selectAddress = (address, type) => {
-    setFormData({ ...formData, [type]: address });
-    setShowFromSuggestions(false);
-    setShowToSuggestions(false);
-  };
 
   const handleFileUpload = (field, file) => {
     setFormData((prev) => ({ ...prev, [field]: file }));
@@ -301,15 +271,7 @@ export default function MyMove() {
                 className="text-center text-lg h-14 text-gray-700 font-semibold"
                 min={new Date().toISOString().split("T")[0]}
               />
-              {formData.moveDate && (
-                <motion.p
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="text-center text-primary-600 font-medium mt-4"
-                >
-                  Perfect! That gives us time to plan everything properly ✨
-                </motion.p>
-              )}
+             
             </div>
           </motion.div>
         );
@@ -361,37 +323,14 @@ export default function MyMove() {
                   <label className="block text-sm font-semibold text-gray-700">
                     Address
                   </label>
-                  <div className="relative">
-                    <MapPin className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
-                    <Input
-                      placeholder="Enter your current address"
-                      className="pl-11 h-12 text-base"
-                      value={formData.fromAddress}
-                      onChange={(e) =>
-                        handleAddressSearch(e.target.value, "fromAddress")
-                      }
-                    />
-                  </div>
-                  {showFromSuggestions && addressSuggestionsList.length > 0 && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="absolute z-10 w-full bg-white border border-gray-200 rounded-xl mt-2 shadow-xl max-h-48 overflow-y-auto"
-                    >
-                      {addressSuggestionsList.map((address, index) => (
-                        <button
-                          key={index}
-                          className="w-full text-left px-4 py-3 hover:bg-gray-50 border-b last:border-b-0 transition-colors"
-                          onClick={() => selectAddress(address, "fromAddress")}
-                        >
-                          <div className="flex items-center space-x-2">
-                            <MapPin className="h-4 w-4 text-gray-400" />
-                            <span className="text-sm">{address}</span>
-                          </div>
-                        </button>
-                      ))}
-                    </motion.div>
-                  )}
+                  <PlacesAutocomplete
+                    value={formData.fromAddress}
+                    onChange={(value) => setFormData({ ...formData, fromAddress: value })}
+                    placeholder="Enter your current address"
+                    onAddressSelect={(address, place) => {
+                      setFormData({ ...formData, fromAddress: address });
+                    }}
+                  />
                 </div>
 
                 {/* Property Type for Current Location */}
@@ -556,37 +495,14 @@ export default function MyMove() {
                   <label className="block text-sm font-semibold text-gray-700">
                     Address
                   </label>
-                  <div className="relative">
-                    <MapPin className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
-                    <Input
-                      placeholder="Enter your new address"
-                      className="pl-11 h-12 text-base"
-                      value={formData.toAddress}
-                      onChange={(e) =>
-                        handleAddressSearch(e.target.value, "toAddress")
-                      }
-                    />
-                  </div>
-                  {showToSuggestions && addressSuggestionsList.length > 0 && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="absolute z-10 w-full bg-white border border-gray-200 rounded-xl mt-2 shadow-xl max-h-48 overflow-y-auto"
-                    >
-                      {addressSuggestionsList.map((address, index) => (
-                        <button
-                          key={index}
-                          className="w-full text-left px-4 py-3 hover:bg-gray-50 border-b last:border-b-0 transition-colors"
-                          onClick={() => selectAddress(address, "toAddress")}
-                        >
-                          <div className="flex items-center space-x-2">
-                            <MapPin className="h-4 w-4 text-gray-400" />
-                            <span className="text-sm">{address}</span>
-                          </div>
-                        </button>
-                      ))}
-                    </motion.div>
-                  )}
+                  <PlacesAutocomplete
+                    value={formData.toAddress}
+                    onChange={(value) => setFormData({ ...formData, toAddress: value })}
+                    placeholder="Enter your new address"
+                    onAddressSelect={(address, place) => {
+                      setFormData({ ...formData, toAddress: address });
+                    }}
+                  />
                 </div>
 
                 {/* Property Type for New Location */}
