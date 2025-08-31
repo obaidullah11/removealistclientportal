@@ -35,7 +35,7 @@ const Features = () => {
     {
       icon: Shield,
       title: 'Secure Platform',
-      description: 'Bank-level security with verified partners and protected transactions',
+      description: 'security with verified partners and protected transactions',
       color: 'text-white',
       bgColor: 'bg-black',
     },

@@ -176,6 +176,18 @@ export default function BookTime() {
 
   const handleDateChange = (e) => {
     const date = e.target.value
+    
+    // Validate that the selected date is not beyond the move date
+    if (moveDetails?.move_date) {
+      const selectedDateObj = new Date(date)
+      const moveDateObj = new Date(moveDetails.move_date)
+      
+      if (selectedDateObj > moveDateObj) {
+        showError('Booking date cannot be beyond the Move Date. Please select a date on or before the Move Date.')
+        return
+      }
+    }
+    
     setSelectedDate(date)
     fetchAvailableSlots(date)
   }
@@ -200,6 +212,17 @@ export default function BookTime() {
     if (!phoneRegex.test(phoneNumber)) {
       showError('Please enter a valid phone number.')
       return false
+    }
+    
+    // Validate that the selected date is not beyond the move date
+    if (moveDetails?.move_date && selectedDate) {
+      const selectedDateObj = new Date(selectedDate)
+      const moveDateObj = new Date(moveDetails.move_date)
+      
+      if (selectedDateObj > moveDateObj) {
+        showError('Booking date cannot be beyond the Move Date. Please select a date on or before the Move Date.')
+        return false
+      }
     }
     
     return true
@@ -368,10 +391,7 @@ export default function BookTime() {
       >
         <Card className="shadow-md">
           <CardHeader>
-            <CardTitle className="text-2xl font-bold">Next Step</CardTitle>
-            <CardDescription>
-            A member of the RemoveAlist team will be in touch shortly to walk you through a personalised, hassle-free plan designed specifically to suit your Move.
-            </CardDescription>
+            
           </CardHeader>
           <CardContent>
             {error ? (
@@ -382,13 +402,13 @@ export default function BookTime() {
             ) : bookingComplete ? (
               <div className="text-center py-8 space-y-6">
                 <div className="flex justify-center">
-                  <CheckCircle className="h-16 w-16 text-green-500" />
+                  <CheckCircle className="h-16 w-16 text-sustainableGreen" />
                 </div>
                 
                 <div>
                   <h3 className="text-lg font-semibold text-gray-800">Booking Requested!</h3>
                   <p className="text-gray-600 mt-2">
-                    Your move has been requested successfully. We'll be in touch shortly with additional details.
+                  Scheduled call with a member of the RemoveAlist team.
                   </p>
                 </div>
                 
@@ -626,7 +646,10 @@ export default function BookTime() {
                     )}
                   </div>
                 )}
-                
+                <CardTitle className="text-2xl font-bold">Next Step</CardTitle>
+            <CardDescription>
+            A member of the RemoveAlist team will contact you shortly to guide you through a personalized, hassle-free plan tailored specifically to your move. Please select the earliest available date and time to speak with our Concierge team.
+            </CardDescription>
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-gray-800">Select Date & Time</h3>
                   
@@ -640,8 +663,19 @@ export default function BookTime() {
                         value={selectedDate}
                         onChange={handleDateChange}
                         min={new Date().toISOString().split('T')[0]} // Set min to today
+                        max={moveDetails?.move_date ? new Date(moveDetails.move_date).toISOString().split('T')[0] : undefined} // Set max to move date
                       />
                     </div>
+                    {moveDetails?.move_date && (
+                      <p className="text-xs text-gray-500">
+                        📅 Booking date must be on or before your Move Date: {new Date(moveDetails.move_date).toLocaleDateString('en-US', { 
+                          weekday: 'long', 
+                          year: 'numeric', 
+                          month: 'long', 
+                          day: 'numeric' 
+                        })}
+                      </p>
+                    )}
                   </div>
                   
                   <div className="space-y-2">
@@ -710,7 +744,7 @@ export default function BookTime() {
                     className="w-full md:w-auto h-12 text-base font-semibold bg-primary-600 hover:bg-primary-700 text-white"
                     disabled={loading || !selectedSlot}
                   >
-                    {loading ? 'Confirming...' : 'Confirm Booking'}
+                    {loading ? 'Confirming...' : 'Confirm Appointment'}
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
                 </div>

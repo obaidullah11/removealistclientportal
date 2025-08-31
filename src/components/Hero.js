@@ -3,14 +3,29 @@ import { motion } from 'framer-motion';
 import { ArrowRight, Calendar, Shield, Sparkles } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { moveAPI } from '../lib/api';
 
 const Hero = () => {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
-  const handleStartMove = () => {
+  const handleStartMove = async () => {
     if (isAuthenticated) {
-      navigate('/my-move');
+      try {
+        // Check if user has existing moves
+        const movesResult = await moveAPI.getUserMoves();
+        if (movesResult.success && movesResult.data && movesResult.data.length > 0) {
+          // User has existing moves, navigate to user-moves page
+          navigate('/user-moves');
+        } else {
+          // User has no moves, navigate to create move page
+          navigate('/my-move');
+        }
+      } catch (error) {
+        console.error('Error checking user moves:', error);
+        // Fallback to create move page if there's an error
+        navigate('/my-move');
+      }
     } else {
       navigate('/signup');
     }

@@ -9,6 +9,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../..
 import { Checkbox } from '../../components/ui/checkbox'
 import { useAuth } from '../../contexts/AuthContext'
 import { validateField, validateTerms } from '../../lib/validation'
+import { PrivacyModal } from '../../components/PrivacyModal'
+import { TermsModal } from '../../components/TermsModal'
 
 export default function Signup() {
   const { register } = useAuth()
@@ -29,6 +31,9 @@ export default function Signup() {
     confirm_password: '',
     agree_to_terms: false
   })
+  
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false)
+  const [showTermsModal, setShowTermsModal] = useState(false)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -365,13 +370,21 @@ export default function Signup() {
                   />
                   <label htmlFor="agree_to_terms" className="text-sm text-gray-700">
                     I agree to the{' '}
-                    <Link to="/terms" className="text-primary-600 hover:text-primary-700 font-medium">
+                    <button
+                      type="button"
+                      onClick={() => setShowTermsModal(true)}
+                      className="text-primary-600 hover:text-primary-700 font-medium underline"
+                    >
                       Terms of Service
-                    </Link>{' '}
+                    </button>{' '}
                     and{' '}
-                    <Link to="/privacy" className="text-primary-600 hover:text-primary-700 font-medium">
+                    <button
+                      type="button"
+                      onClick={() => setShowPrivacyModal(true)}
+                      className="text-primary-600 hover:text-primary-700 font-medium underline"
+                    >
                       Privacy Policy
-                    </Link>
+                    </button>
                   </label>
                 </div>
                 {getFieldError('agree_to_terms') && (
@@ -398,6 +411,18 @@ export default function Signup() {
           </CardContent>
         </Card>
       </motion.div>
+
+      {/* Privacy Modal */}
+      <PrivacyModal 
+        isOpen={showPrivacyModal} 
+        onClose={() => setShowPrivacyModal(false)} 
+      />
+
+      {/* Terms Modal */}
+      <TermsModal 
+        isOpen={showTermsModal} 
+        onClose={() => setShowTermsModal(false)} 
+      />
     </div>
   )
 }

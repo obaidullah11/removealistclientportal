@@ -23,7 +23,7 @@ export default function Navbar() {
   // Navigation items for non-authenticated users
   const publicNavigation = [
     { name: "Home", href: "/" },
-    { name: "Services", href: "/services" },
+    
     { name: "Partners", href: "/partners" },
   ];
 
