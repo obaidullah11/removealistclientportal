@@ -50,6 +50,7 @@ function LandingPage() {
       <Navbar />
       <Hero />
       <Features />
+      <HowItWorks />
       <PartnerSection />
       <Discounts />
 

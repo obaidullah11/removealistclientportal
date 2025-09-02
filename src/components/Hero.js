@@ -33,7 +33,7 @@ const Hero = () => {
 
   const handleBookTime = () => {
     if (isAuthenticated) {
-      navigate('/book-time');
+      navigate('/my-bookings');
     } else {
       navigate('/login');
     }

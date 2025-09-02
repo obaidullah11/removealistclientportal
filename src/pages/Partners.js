@@ -5,8 +5,36 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { Button } from '../components/ui/button';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/Footer';
+import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { moveAPI } from '../lib/api';
 
 const Partners = () => {
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+
+  const handleStartMove = async () => {
+    if (isAuthenticated) {
+      try {
+        // Check if user has existing moves
+        const movesResult = await moveAPI.getUserMoves();
+        if (movesResult.success && movesResult.data && movesResult.data.length > 0) {
+          // User has existing moves, navigate to user-moves page
+          navigate('/user-moves');
+        } else {
+          // User has no moves, navigate to create move page
+          navigate('/my-move');
+        }
+      } catch (error) {
+        console.error('Error checking user moves:', error);
+        // Fallback to create move page if there's an error
+        navigate('/my-move');
+      }
+    } else {
+      navigate('/signup');
+    }
+  };
+
   const partners = [
     {
       id: 'men-in-black-removals',
@@ -280,7 +308,7 @@ const Partners = () => {
                   Get connected with verified removal professionals for your next move.
                 </p>
                 <Button
-                  onClick={() => window.location.href = '/my-move'}
+                  onClick={handleStartMove}
                   className="bg-white text-primary-600 hover:bg-gray-100 px-8 py-3 rounded-xl font-semibold transition-all duration-200"
                 >
                   Start Your Move
