@@ -501,21 +501,7 @@ const HowItWorks = () => {
           </div>
         </motion.div>
 
-        {/* CTA Button */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="text-center mt-16"
-        >
-          <button 
-            onClick={handleStartMove}
-            className="px-10 py-4 bg-black text-white rounded-2xl font-semibold text-lg hover:bg-gray-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
-          >
-            Start Your Move Today
-          </button>
-        </motion.div>
+
 
         {/* Disclaimer */}
         <motion.div
