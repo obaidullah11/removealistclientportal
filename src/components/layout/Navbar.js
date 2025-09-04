@@ -23,13 +23,14 @@ export default function Navbar() {
   // Navigation items for non-authenticated users
   const publicNavigation = [
     { name: "Home", href: "/" },
-    
+    { name: "How It Works", href: "/#how-it-works" },
     { name: "Partners", href: "/partners" },
   ];
 
   // Full navigation for authenticated users
   const fullNavigation = [
     { name: "Home", href: "/" },
+    { name: "How It Works", href: "/#how-it-works" },
     // { name: "My Move", href: "/my-move" },
     { name: "My Moves", href: "/user-moves" },
     { name: "Timeline", href: "/timeline" },
@@ -52,6 +53,29 @@ export default function Navbar() {
   const navigateToProfile = () => {
     navigate("/profile");
   };
+
+  const handleHowItWorksClick = () => {
+    setIsMenuOpen(false); // Close mobile menu if open
+    
+    if (location.pathname !== "/") {
+      // If not on home page, navigate to home first
+      navigate("/");
+      // Wait for navigation to complete, then scroll
+      setTimeout(() => {
+        const element = document.getElementById("how-it-works");
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth" });
+        }
+      }, 100);
+    } else {
+      // If already on home page, just scroll
+      const element = document.getElementById("how-it-works");
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth" });
+      }
+    }
+  };
+
 
   // Get user display name
   const getUserDisplayName = () => {
@@ -92,19 +116,36 @@ export default function Navbar() {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
-            {navigation.map((item) => (
-              <Link
-                key={item.name}
-                to={item.href}
-                className={`text-sm font-medium transition-colors ${
-                  isActive(item.href)
-                    ? "text-primary-600"
-                    : "text-gray-700 hover:text-primary-600"
-                }`}
-              >
-                {item.name}
-              </Link>
-            ))}
+            {navigation.map((item) => {
+              if (item.name === "How It Works") {
+                return (
+                  <button
+                    key={item.name}
+                    onClick={handleHowItWorksClick}
+                    className={`text-sm font-medium transition-colors ${
+                      isActive(item.href)
+                        ? "text-primary-600"
+                        : "text-gray-700 hover:text-primary-600"
+                    }`}
+                  >
+                    {item.name}
+                  </button>
+                );
+              }
+              return (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={`text-sm font-medium transition-colors ${
+                    isActive(item.href)
+                      ? "text-primary-600"
+                      : "text-gray-700 hover:text-primary-600"
+                  }`}
+                >
+                  {item.name}
+                </Link>
+              );
+            })}
           </div>
 
           {/* Right side buttons */}
@@ -201,20 +242,37 @@ export default function Navbar() {
           className="md:hidden bg-white border-t border-gray-200"
         >
           <div className="px-4 py-4 space-y-3">
-            {navigation.map((item) => (
-              <Link
-                key={item.name}
-                to={item.href}
-                className={`block py-2 text-sm font-medium transition-colors ${
-                  isActive(item.href)
-                    ? "text-primary-600"
-                    : "text-gray-700 hover:text-primary-600"
-                }`}
-                onClick={() => setIsMenuOpen(false)}
-              >
-                {item.name}
-              </Link>
-            ))}
+            {navigation.map((item) => {
+              if (item.name === "How It Works") {
+                return (
+                  <button
+                    key={item.name}
+                    onClick={handleHowItWorksClick}
+                    className={`block py-2 text-sm font-medium transition-colors w-full text-left ${
+                      isActive(item.href)
+                        ? "text-primary-600"
+                        : "text-gray-700 hover:text-primary-600"
+                    }`}
+                  >
+                    {item.name}
+                  </button>
+                );
+              }
+              return (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={`block py-2 text-sm font-medium transition-colors ${
+                    isActive(item.href)
+                      ? "text-primary-600"
+                      : "text-gray-700 hover:text-primary-600"
+                  }`}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {item.name}
+                </Link>
+              );
+            })}
 
             {/* Mobile auth buttons */}
             <div className="pt-3 space-y-3 border-t border-gray-200">
