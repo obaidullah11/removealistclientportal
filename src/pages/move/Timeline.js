@@ -123,13 +123,34 @@ export default function Timeline() {
 
   if (!currentMove) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-black mb-4">No Move Found</h2>
-          <p className="text-gray-700 mb-6">Please create a move first to view your timeline.</p>
-          <Button onClick={() => window.location.href = '/my-move'} className="bg-black text-white hover:bg-gray-800">
-            Create Move
-          </Button>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="max-w-md w-full">
+          <div className="bg-white rounded-2xl shadow-lg p-8 text-center">
+            {/* Icon */}
+            <div className="mb-6">
+              <div className="w-20 h-20 mx-auto bg-gray-100 rounded-full flex items-center justify-center">
+                <Calendar className="w-10 h-10 text-gray-400" />
+              </div>
+            </div>
+            
+            {/* Main Heading */}
+            <h2 className="text-2xl font-bold text-gray-900 mb-3">
+              No moves found
+            </h2>
+            
+            {/* Descriptive Text */}
+            <p className="text-gray-500 mb-8">
+              You don't have any moves scheduled yet.
+            </p>
+            
+            {/* Call to Action Button */}
+            <Button 
+              onClick={() => window.location.href = '/my-move'}
+              className="w-full bg-teal-600 hover:bg-teal-700 text-white font-medium py-3 px-6 rounded-xl transition-colors"
+            >
+              Schedule a Move
+            </Button>
+          </div>
         </div>
       </div>
     )

@@ -124,33 +124,33 @@ function MyBookings() {
   if (bookings.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="text-center max-w-md p-6 bg-white rounded-lg shadow-sm">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-16 w-16 mx-auto text-gray-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-            />
-          </svg>
-          <h3 className="text-lg font-semibold text-gray-800 mt-4">
-            No bookings yet
-          </h3>
-          <p className="text-gray-600 mt-2 mb-6">
-            You don't have any bookings yet.
-          </p>
-          <Button
-            onClick={() => navigate("/my-move")}
-            className="bg-primary-600 hover:bg-primary-700"
-          >
-            Schedule a Move
-          </Button>
+        <div className="max-w-md w-full">
+          <div className="bg-white rounded-2xl shadow-lg p-8 text-center">
+            {/* Icon */}
+            <div className="mb-6">
+              <div className="w-20 h-20 mx-auto bg-gray-100 rounded-full flex items-center justify-center">
+                <CheckCircle className="w-10 h-10 text-gray-400" />
+              </div>
+            </div>
+            
+            {/* Main Heading */}
+            <h2 className="text-2xl font-bold text-gray-900 mb-3">
+              No bookings yet
+            </h2>
+            
+            {/* Descriptive Text */}
+            <p className="text-gray-500 mb-8">
+              You don't have any bookings yet.
+            </p>
+            
+            {/* Call to Action Button */}
+            <Button 
+              onClick={() => navigate("/my-move")}
+              className="w-full bg-teal-600 hover:bg-teal-700 text-white font-medium py-3 px-6 rounded-xl transition-colors"
+            >
+              Schedule a Move
+            </Button>
+          </div>
         </div>
       </div>
     );

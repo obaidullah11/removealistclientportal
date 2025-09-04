@@ -78,10 +78,16 @@ const PlacesAutocomplete = ({
 
     setIsLoading(true);
 
-    // Create search request without restrictions
+    // Create search request restricted to Australia
     const request = {
       input: inputValue,
-      types: ['address'] // Only return addresses (cannot mix with geocode)
+      types: ['address'], // Only return addresses (cannot mix with geocode)
+      componentRestrictions: {
+        country: 'au' // Restrict to Australia
+      },
+      // Bias results towards Australia
+      location: new window.google.maps.LatLng(-25.2744, 133.7751), // Center of Australia
+      radius: 3000000 // 3000km radius to cover all of Australia
     };
 
     autocompleteService.current.getPlacePredictions(request, (predictions, status) => {
