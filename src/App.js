@@ -29,6 +29,10 @@ import ResetPasswordConfirm from "./pages/auth/ResetPasswordConfirm";
 import ChangePassword from "./pages/auth/ChangePassword";
 import VerifyEmail from "./pages/auth/VerifyEmail";
 
+// Legal Pages
+import PrivacyPolicy from "./pages/legal/PrivacyPolicy";
+import TermsOfService from "./pages/legal/TermsOfService";
+
 // Moving Platform Pages
 import CreateMove from "./pages/move/CreateMove";
 import Timeline from "./pages/move/Timeline";
@@ -100,6 +104,8 @@ function App() {
                 element={<ResetPasswordConfirm />}
               />
               <Route path="/verify-email" element={<VerifyEmail />} />
+              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+              <Route path="/terms-of-service" element={<TermsOfService />} />
 
               {/* Protected Routes with App Layout */}
               <Route

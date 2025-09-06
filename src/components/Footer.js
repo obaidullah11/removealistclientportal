@@ -3,10 +3,13 @@ import { Leaf, Facebook, Twitter, Linkedin, Instagram } from 'lucide-react';
 
 const Footer = () => {
   const footerLinks = {
-    Company: ['About Us', 'Careers', 'Press', 'Contact'],
-    Product: ['Features', 'Pricing', 'Partners', 'API'],
-    Resources: ['Help Center', 'Blog', 'Moving Guides', 'Cost Calculator'],
-    Legal: ['Privacy Policy', 'Terms of Service', 'Security', 'Compliance'],
+    // Company: ['About Us', 'Careers', 'Press', 'Contact'],
+    // Company: [],
+    // Product: [],
+    // Resources: [],
+    // Product: ['Features', 'Pricing', 'Partners', 'API'],
+    // Resources: ['Help Center', 'Blog', 'Moving Guides', 'Cost Calculator'],
+    Legal: ['Privacy Policy', 'Terms of Service'],
   };
 
   const socialLinks = [
@@ -77,7 +80,8 @@ const Footer = () => {
         {/* Bottom */}
         <div className="mt-12 pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center">
           <p className="text-gray-400 mb-4 md:mb-0">
-            © 2025 RemoveAList. All rights reserved.
+            © 2025 Simply Save Australia Pty Ltd ACN 147 223 461  
+            Operating as 'RemoveAlist'. All rights reserved.
           </p>
           <div className="flex gap-6">
             <a href="/privacy-policy" className="text-gray-400 hover:text-white transition-colors">

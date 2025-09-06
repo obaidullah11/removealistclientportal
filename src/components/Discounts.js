@@ -93,7 +93,7 @@ const Discounts = () => {
           </div>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             We believe everyone deserves affordable, quality moving services.
-            Check out our special discount programs designed for different life
+            Learn about our special discount programs designed for different life
             situations.
           </p>
         </motion.div>
@@ -113,10 +113,6 @@ const Discounts = () => {
               <motion.div
                 key={option.id}
                 variants={cardVariants}
-                whileHover={{
-                  scale: 1.05,
-                  transition: { duration: 0.2 },
-                }}
                 className="h-full"
               >
                 <div className="bg-white rounded-2xl p-8 shadow-lg max-w-sm mx-auto h-full flex flex-col">
@@ -162,10 +158,10 @@ const Discounts = () => {
                     </ul>
                   </div>
 
-                  {/* Call to Action Button */}
-                  <button className="w-full px-8 py-3 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-xl font-semibold hover:from-primary-600 hover:to-primary-700 transition-all duration-200 shadow-lg hover:shadow-xl">
-                    Qualify for {option.discount}
-                  </button>
+                  {/* Informational Badge */}
+                  <div className="w-full px-8 py-3 bg-gray-100 text-gray-600 rounded-xl font-semibold text-center border-2 border-gray-200">
+                    Available: {option.discount}
+                  </div>
                 </div>
               </motion.div>
             );
@@ -182,7 +178,7 @@ const Discounts = () => {
         >
           <p className="text-sm text-gray-500">
             * Terms and conditions apply. Discounts cannot be combined with
-            other offers. Verification may be required for eligibility.
+            other offers. Verification may be required for eligibility. Contact us for more information.
           </p>
         </motion.div>
       </div>

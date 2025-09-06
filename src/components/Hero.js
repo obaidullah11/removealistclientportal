@@ -90,15 +90,15 @@ const Hero = () => {
             
             <div className="flex flex-nowrap gap-2">
               {["AI Checklists", "Moving with Pets", "Garage Sale", "Recycle"].map((item, index) => (
-                <motion.button
+                <motion.div
                   key={item}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: 0.1 + index * 0.1 }}
-                  className="px-3 py-1 bg-black text-white text-sm rounded-sm shadow hover:bg-gray-800 transition"
+                  className="px-3 py-1 bg-gray-100 text-gray-600 text-sm rounded-sm border border-gray-200"
                 >
                   {item}
-                </motion.button>
+                </motion.div>
               ))}
             </div>
           </motion.div>
