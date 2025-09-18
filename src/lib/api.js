@@ -311,6 +311,31 @@ export const moveAPI = {
     apiCall(`/move/delete/${moveId}/`, {
       method: "DELETE",
     }),
+
+  // Collaborator management
+  inviteCollaborator: (collaboratorData) =>
+    apiCall("/move/collaborators/invite/", {
+      method: "POST",
+      body: JSON.stringify(collaboratorData),
+    }),
+
+  getCollaborators: (moveId) => 
+    apiCall(`/move/collaborators/${moveId}/`),
+
+  removeCollaborator: (collaboratorId) =>
+    apiCall(`/move/collaborators/remove/${collaboratorId}/`, {
+      method: "DELETE",
+    }),
+
+  // Task assignments
+  assignTask: (assignmentData) =>
+    apiCall("/move/tasks/assign/", {
+      method: "POST",
+      body: JSON.stringify(assignmentData),
+    }),
+
+  getTaskAssignments: (moveId) =>
+    apiCall(`/move/tasks/assignments/${moveId}/`),
 };
 
 // Booking & Scheduling API
@@ -399,6 +424,285 @@ export const timelineAPI = {
     apiCall("/checklist/items/", {
       method: "POST",
       body: JSON.stringify(taskData),
+    }),
+};
+
+// Task Management API
+export const taskAPI = {
+  // Get tasks for a move
+  getTasks: (moveId, filters = {}) => {
+    const params = new URLSearchParams({ move_id: moveId, ...filters });
+    return apiCall(`/tasks/?${params}`);
+  },
+
+  // Create task
+  createTask: (taskData) =>
+    apiCall("/tasks/create/", {
+      method: "POST",
+      body: JSON.stringify(taskData),
+    }),
+
+  // Get task details
+  getTask: (taskId) => apiCall(`/tasks/${taskId}/`),
+
+  // Update task
+  updateTask: (taskId, taskData) =>
+    apiCall(`/tasks/${taskId}/update/`, {
+      method: "PUT",
+      body: JSON.stringify(taskData),
+    }),
+
+  // Delete task
+  deleteTask: (taskId) =>
+    apiCall(`/tasks/${taskId}/delete/`, {
+      method: "DELETE",
+    }),
+
+  // Create task from template
+  createFromTemplate: (templateData) =>
+    apiCall("/tasks/from-template/", {
+      method: "POST",
+      body: JSON.stringify(templateData),
+    }),
+
+  // Task timers
+  getTimers: (taskId) => apiCall(`/tasks/timers/?task_id=${taskId}`),
+  
+  startTimer: (timerData) =>
+    apiCall("/tasks/timers/start/", {
+      method: "POST",
+      body: JSON.stringify(timerData),
+    }),
+
+  stopTimer: (timerId, timerData) =>
+    apiCall(`/tasks/timers/${timerId}/stop/`, {
+      method: "PUT",
+      body: JSON.stringify(timerData),
+    }),
+
+  getActiveTimer: () => apiCall("/tasks/timers/active/"),
+
+  // Task templates
+  getTemplates: (filters = {}) => {
+    const params = new URLSearchParams(filters);
+    return apiCall(`/tasks/templates/?${params}`);
+  },
+
+  getTemplate: (templateId) => apiCall(`/tasks/templates/${templateId}/`),
+};
+
+// Service Booking API
+export const serviceAPI = {
+  // Get services
+  getServices: (moveId, filters = {}) => {
+    const params = new URLSearchParams({ move_id: moveId, ...filters });
+    return apiCall(`/services/?${params}`);
+  },
+
+  // Get service details
+  getService: (serviceId) => apiCall(`/services/${serviceId}/`),
+
+  // Get service categories
+  getCategories: () => apiCall("/services/categories/"),
+
+  // Service bookings
+  getBookings: (moveId, filters = {}) => {
+    const params = new URLSearchParams({ move_id: moveId, ...filters });
+    return apiCall(`/services/bookings/?${params}`);
+  },
+
+  createBooking: (bookingData) =>
+    apiCall("/services/bookings/create/", {
+      method: "POST",
+      body: JSON.stringify(bookingData),
+    }),
+
+  getBooking: (bookingId) => apiCall(`/services/bookings/${bookingId}/`),
+
+  updateBooking: (bookingId, bookingData) =>
+    apiCall(`/services/bookings/${bookingId}/update/`, {
+      method: "PUT",
+      body: JSON.stringify(bookingData),
+    }),
+
+  cancelBooking: (bookingId) =>
+    apiCall(`/services/bookings/${bookingId}/cancel/`, {
+      method: "DELETE",
+    }),
+
+  // Service reviews
+  getReviews: (providerId) => apiCall(`/services/reviews/?provider_id=${providerId}`),
+
+  createReview: (reviewData) =>
+    apiCall("/services/reviews/create/", {
+      method: "POST",
+      body: JSON.stringify(reviewData),
+    }),
+
+  getReview: (reviewId) => apiCall(`/services/reviews/${reviewId}/`),
+
+  updateReview: (reviewId, reviewData) =>
+    apiCall(`/services/reviews/${reviewId}/update/`, {
+      method: "PUT",
+      body: JSON.stringify(reviewData),
+    }),
+
+  deleteReview: (reviewId) =>
+    apiCall(`/services/reviews/${reviewId}/delete/`, {
+      method: "DELETE",
+    }),
+
+  // Service quotes
+  getQuotes: (bookingId) => apiCall(`/services/quotes/?booking_id=${bookingId}`),
+
+  getQuote: (quoteId) => apiCall(`/services/quotes/${quoteId}/`),
+};
+
+// Pricing API
+export const pricingAPI = {
+  // Get pricing plans
+  getPlans: (filters = {}) => {
+    const params = new URLSearchParams(filters);
+    return apiCall(`/pricing/plans/?${params}`);
+  },
+
+  getPlan: (planId, filters = {}) => {
+    const params = new URLSearchParams(filters);
+    return apiCall(`/pricing/plans/${planId}/?${params}`);
+  },
+
+  // Subscription management
+  getSubscription: () => apiCall("/pricing/subscription/"),
+
+  createSubscription: (subscriptionData) =>
+    apiCall("/pricing/subscription/create/", {
+      method: "POST",
+      body: JSON.stringify(subscriptionData),
+    }),
+
+  updateSubscription: (subscriptionData) =>
+    apiCall("/pricing/subscription/update/", {
+      method: "PUT",
+      body: JSON.stringify(subscriptionData),
+    }),
+
+  cancelSubscription: () =>
+    apiCall("/pricing/subscription/cancel/", {
+      method: "POST",
+    }),
+
+  // Payment history
+  getPayments: () => apiCall("/pricing/payments/"),
+
+  // Discount codes
+  validateDiscount: (discountData) =>
+    apiCall("/pricing/discount/validate/", {
+      method: "POST",
+      body: JSON.stringify(discountData),
+    }),
+
+  getDiscountUsage: () => apiCall("/pricing/discount/usage/"),
+
+  // User plan info
+  getUserPlanInfo: () => apiCall("/pricing/user/plan-info/"),
+};
+
+// Enhanced Inventory API
+export const enhancedInventoryAPI = {
+  // Rooms (existing functionality)
+  getRooms: (moveId) => apiCall(`/inventory/rooms/?move_id=${moveId}`),
+  createRoom: (roomData) =>
+    apiCall("/inventory/rooms/", {
+      method: "POST",
+      body: JSON.stringify(roomData),
+    }),
+  updateRoom: (roomId, roomData) =>
+    apiCall(`/inventory/rooms/${roomId}/`, {
+      method: "PUT",
+      body: JSON.stringify(roomData),
+    }),
+  markRoomPacked: (roomId, packed) =>
+    apiCall(`/inventory/rooms/${roomId}/packed/`, {
+      method: "PATCH",
+      body: JSON.stringify({ packed }),
+    }),
+  deleteRoom: (roomId) =>
+    apiCall(`/inventory/rooms/${roomId}/`, {
+      method: "DELETE",
+    }),
+  uploadRoomImage: (roomId, file) =>
+    uploadFile(`/inventory/rooms/${roomId}/image/`, file),
+
+  // Boxes
+  getBoxes: (moveId) => apiCall(`/inventory/boxes/?move_id=${moveId}`),
+  createBox: (boxData) =>
+    apiCall("/inventory/boxes/", {
+      method: "POST",
+      body: JSON.stringify(boxData),
+    }),
+  getBox: (boxId) => apiCall(`/inventory/boxes/${boxId}/`),
+  updateBox: (boxId, boxData) =>
+    apiCall(`/inventory/boxes/${boxId}/`, {
+      method: "PUT",
+      body: JSON.stringify(boxData),
+    }),
+  deleteBox: (boxId) =>
+    apiCall(`/inventory/boxes/${boxId}/`, {
+      method: "DELETE",
+    }),
+
+  // Heavy Items
+  getHeavyItems: (moveId) => apiCall(`/inventory/heavy-items/?move_id=${moveId}`),
+  createHeavyItem: (itemData) =>
+    apiCall("/inventory/heavy-items/", {
+      method: "POST",
+      body: JSON.stringify(itemData),
+    }),
+  getHeavyItem: (itemId) => apiCall(`/inventory/heavy-items/${itemId}/`),
+  updateHeavyItem: (itemId, itemData) =>
+    apiCall(`/inventory/heavy-items/${itemId}/`, {
+      method: "PUT",
+      body: JSON.stringify(itemData),
+    }),
+  deleteHeavyItem: (itemId) =>
+    apiCall(`/inventory/heavy-items/${itemId}/`, {
+      method: "DELETE",
+    }),
+
+  // High Value Items
+  getHighValueItems: (moveId) => apiCall(`/inventory/high-value-items/?move_id=${moveId}`),
+  createHighValueItem: (itemData) =>
+    apiCall("/inventory/high-value-items/", {
+      method: "POST",
+      body: JSON.stringify(itemData),
+    }),
+  getHighValueItem: (itemId) => apiCall(`/inventory/high-value-items/${itemId}/`),
+  updateHighValueItem: (itemId, itemData) =>
+    apiCall(`/inventory/high-value-items/${itemId}/`, {
+      method: "PUT",
+      body: JSON.stringify(itemData),
+    }),
+  deleteHighValueItem: (itemId) =>
+    apiCall(`/inventory/high-value-items/${itemId}/`, {
+      method: "DELETE",
+    }),
+
+  // Storage Items
+  getStorageItems: (moveId) => apiCall(`/inventory/storage-items/?move_id=${moveId}`),
+  createStorageItem: (itemData) =>
+    apiCall("/inventory/storage-items/", {
+      method: "POST",
+      body: JSON.stringify(itemData),
+    }),
+  getStorageItem: (itemId) => apiCall(`/inventory/storage-items/${itemId}/`),
+  updateStorageItem: (itemId, itemData) =>
+    apiCall(`/inventory/storage-items/${itemId}/`, {
+      method: "PUT",
+      body: JSON.stringify(itemData),
+    }),
+  deleteStorageItem: (itemId) =>
+    apiCall(`/inventory/storage-items/${itemId}/`, {
+      method: "DELETE",
     }),
 };
 

@@ -165,6 +165,13 @@ function UserMoves() {
                 {/* Action buttons */}
                 <div className="flex justify-end gap-3 mt-4">
                   <button
+                    onClick={() => navigate(`/move/dashboard/${move.id}`)}
+                    className="px-3 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
+                    title="View Dashboard"
+                  >
+                    Dashboard
+                  </button>
+                  <button
                     onClick={() => handleUpdate(move)}
                     className="p-2 rounded-full bg-gray-100 hover:bg-blue-100 text-blue-600 transition"
                     title="Update Move"

@@ -57,6 +57,20 @@ const steps = [
     icon: DollarSign,
     color: "from-emerald-500 to-emerald-600",
   },
+  {
+    id: 5,
+    title: "Select Discounts",
+    subtitle: "Choose applicable discounts for your move",
+    icon: DollarSign,
+    color: "from-purple-500 to-purple-600",
+  },
+  {
+    id: 6,
+    title: "Invite Collaborators",
+    subtitle: "Add family and friends to help with your move",
+    icon: Users,
+    color: "from-orange-500 to-orange-600",
+  },
 ];
 
 export default function MyMove() {
@@ -79,6 +93,12 @@ export default function MyMove() {
     hasPets: false,
     hasMovers: false,
     budget: "",
+    // New fields
+    currentPropertyUrl: "",
+    newPropertyUrl: "",
+    discountType: "none",
+    discountPercentage: 0,
+    collaborators: [],
   });
 
 
@@ -161,6 +181,10 @@ export default function MyMove() {
         // from_property_size: formData.currentPropertySize,
         to_property_type: formData.newPropertyType,
         // to_property_size: formData.newPropertySize,
+        current_property_url: formData.currentPropertyUrl,
+        new_property_url: formData.newPropertyUrl,
+        discount_type: formData.discountType,
+        discount_percentage: formData.discountPercentage,
         special_items: [
           formData.hasChildren && "Moving with children",
           formData.hasPets && "Moving with pets",
@@ -181,8 +205,27 @@ export default function MyMove() {
       const response = await moveAPI.createMove(moveData);
       console.log(response);
       if (response.success) {
+        // Send collaborator invitations if any
+        if (formData.collaborators && formData.collaborators.length > 0) {
+          for (const collaborator of formData.collaborators) {
+            try {
+              await moveAPI.inviteCollaborator({
+                move_id: response.data.id,
+                email: collaborator.email,
+                first_name: collaborator.firstName,
+                last_name: collaborator.lastName || '',
+                role: collaborator.role,
+                permissions: collaborator.permissions
+              });
+            } catch (error) {
+              console.error('Error inviting collaborator:', error);
+              // Continue with other invitations even if one fails
+            }
+          }
+        }
+
         showSuccess(
-          "🎉 Your move project has been created! Redirecting to book time..."
+          "🎉 Your move project has been created! Redirecting to your dashboard..."
         );
 
         // Store move ID in session storage
@@ -190,9 +233,9 @@ export default function MyMove() {
           sessionStorage.setItem("currentMoveId", response.data.id);
         }
 
-        // Redirect to book time after a short delay
+        // Redirect to dashboard after a short delay
         setTimeout(() => {
-          window.location.href = "/book-time";
+          window.location.href = `/move/dashboard/${response.data.id}`;
         }, 2000);
       } else {
         showError(
@@ -331,6 +374,23 @@ export default function MyMove() {
                       setFormData({ ...formData, fromAddress: address });
                     }}
                   />
+                </div>
+
+                {/* Property URL Input */}
+                <div className="space-y-4">
+                  <label className="block text-sm font-semibold text-gray-700">
+                    Property URL (Optional)
+                  </label>
+                  <input
+                    type="url"
+                    value={formData.currentPropertyUrl}
+                    onChange={(e) => setFormData({ ...formData, currentPropertyUrl: e.target.value })}
+                    placeholder="Paste URL from Domain.com.au or Realestate.com.au"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  />
+                  <p className="text-xs text-gray-500">
+                    Accepted from Domain.com.au and Realestate.com.au only
+                  </p>
                 </div>
 
                 {/* Property Type for Current Location */}
@@ -503,6 +563,23 @@ export default function MyMove() {
                       setFormData({ ...formData, toAddress: address });
                     }}
                   />
+                </div>
+
+                {/* Property URL Input */}
+                <div className="space-y-4">
+                  <label className="block text-sm font-semibold text-gray-700">
+                    Property URL (Optional)
+                  </label>
+                  <input
+                    type="url"
+                    value={formData.newPropertyUrl}
+                    onChange={(e) => setFormData({ ...formData, newPropertyUrl: e.target.value })}
+                    placeholder="Paste URL from Domain.com.au or Realestate.com.au"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  />
+                  <p className="text-xs text-gray-500">
+                    Accepted from Domain.com.au and Realestate.com.au only
+                  </p>
                 </div>
 
                 {/* Property Type for New Location */}
@@ -904,6 +981,219 @@ export default function MyMove() {
                     max="50000"
                   />
                 </div>
+              </div>
+            </div>
+          </motion.div>
+        );
+
+      case 5:
+        return (
+          <motion.div
+            key="discount"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+          >
+            <div className="text-center">
+              <div
+                className={`w-20 h-20 bg-gradient-to-r ${currentStepData.color} rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl`}
+              >
+                <DollarSign className="h-10 w-10 text-white" />
+              </div>
+              <h2 className="text-3xl font-bold mb-3">
+                {currentStepData.title}
+              </h2>
+              <p className="text-gray-600 text-lg">
+                {currentStepData.subtitle}
+              </p>
+            </div>
+
+            <div className="max-w-2xl mx-auto space-y-4">
+              {[
+                {
+                  id: 'none',
+                  title: 'No Discount',
+                  description: 'Standard pricing',
+                  discount: '0%',
+                  percentage: 0
+                },
+                {
+                  id: 'first_home_buyer',
+                  title: 'First Home Buyer',
+                  description: 'Special discount for first-time home buyers',
+                  discount: '15% OFF',
+                  percentage: 15
+                },
+                {
+                  id: 'seniors',
+                  title: 'Seniors Discount',
+                  description: 'Exclusive savings for seniors (65+)',
+                  discount: '20% OFF',
+                  percentage: 20
+                },
+                {
+                  id: 'single_parent',
+                  title: 'Single Parent',
+                  description: 'Supporting single-parent families',
+                  discount: '18% OFF',
+                  percentage: 18
+                }
+              ].map((option) => (
+                <div
+                  key={option.id}
+                  onClick={() => setFormData(prev => ({
+                    ...prev, 
+                    discountType: option.id,
+                    discountPercentage: option.percentage
+                  }))}
+                  className={`p-4 border-2 rounded-lg cursor-pointer transition-all hover:scale-[1.02] ${
+                    formData.discountType === option.id
+                      ? 'border-purple-500 bg-purple-50 shadow-lg'
+                      : 'border-gray-200 hover:border-purple-300'
+                  }`}
+                >
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-900">{option.title}</h3>
+                      <p className="text-sm text-gray-600 mt-1">{option.description}</p>
+                    </div>
+                    <div className="text-right">
+                      <span className={`font-bold ${
+                        option.id === 'none' ? 'text-gray-500' : 'text-purple-600'
+                      }`}>
+                        {option.discount}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              {formData.discountType !== 'none' && formData.budget && (
+                <div className="mt-6 p-4 bg-purple-50 rounded-lg">
+                  <h4 className="font-semibold text-purple-800 mb-2">Discount Applied!</h4>
+                  <div className="text-sm text-purple-700">
+                    <p>Original Budget: ${formData.budget}</p>
+                    <p>Discount ({formData.discountPercentage}%): -${(parseFloat(formData.budget) * formData.discountPercentage / 100).toFixed(2)}</p>
+                    <p className="font-semibold">Final Amount: ${(parseFloat(formData.budget) * (1 - formData.discountPercentage / 100)).toFixed(2)}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        );
+
+      case 6:
+        return (
+          <motion.div
+            key="collaborators"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+          >
+            <div className="text-center">
+              <div
+                className={`w-20 h-20 bg-gradient-to-r ${currentStepData.color} rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl`}
+              >
+                <Users className="h-10 w-10 text-white" />
+              </div>
+              <h2 className="text-3xl font-bold mb-3">
+                {currentStepData.title}
+              </h2>
+              <p className="text-gray-600 text-lg">
+                {currentStepData.subtitle}
+              </p>
+            </div>
+
+            <div className="max-w-2xl mx-auto">
+              {/* Collaborator List */}
+              <div className="space-y-3 mb-6">
+                {formData.collaborators.map((collaborator, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
+                    <div>
+                      <p className="font-medium">{collaborator.firstName} {collaborator.lastName}</p>
+                      <p className="text-sm text-gray-600">{collaborator.email}</p>
+                      <p className="text-xs text-gray-500">{collaborator.role} • {collaborator.permissions}</p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        const newCollaborators = formData.collaborators.filter((_, i) => i !== index);
+                        setFormData(prev => ({ ...prev, collaborators: newCollaborators }));
+                      }}
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              {/* Add Collaborator Form */}
+              <div className="bg-white p-6 rounded-lg border border-gray-200">
+                <h3 className="font-semibold mb-4">Invite a Collaborator</h3>
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <input
+                    type="email"
+                    placeholder="Email address"
+                    className="px-3 py-2 border rounded-md"
+                    id="collaborator-email"
+                  />
+                  <input
+                    type="text"
+                    placeholder="First name"
+                    className="px-3 py-2 border rounded-md"
+                    id="collaborator-firstname"
+                  />
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <select
+                    className="px-3 py-2 border rounded-md"
+                    id="collaborator-role"
+                    defaultValue="helper"
+                  >
+                    <option value="family">Family Member</option>
+                    <option value="friend">Friend</option>
+                    <option value="helper">Helper</option>
+                  </select>
+                  
+                  <select
+                    className="px-3 py-2 border rounded-md"
+                    id="collaborator-permissions"
+                    defaultValue="view_tasks"
+                  >
+                    <option value="view_tasks">View Tasks Only</option>
+                    <option value="edit_tasks">Edit Tasks</option>
+                  </select>
+                </div>
+                
+                <button
+                  onClick={() => {
+                    const email = document.getElementById('collaborator-email').value;
+                    const firstName = document.getElementById('collaborator-firstname').value;
+                    const role = document.getElementById('collaborator-role').value;
+                    const permissions = document.getElementById('collaborator-permissions').value;
+                    
+                    if (email && firstName) {
+                      const newCollaborator = { email, firstName, lastName: '', role, permissions };
+                      setFormData(prev => ({ 
+                        ...prev, 
+                        collaborators: [...prev.collaborators, newCollaborator] 
+                      }));
+                      
+                      // Clear form
+                      document.getElementById('collaborator-email').value = '';
+                      document.getElementById('collaborator-firstname').value = '';
+                    }
+                  }}
+                  className="w-full px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700"
+                >
+                  Add Collaborator
+                </button>
+              </div>
+
+              <div className="mt-4 text-center text-sm text-gray-500">
+                <p>Collaborators will be able to view and help with tasks, but won't see budget information.</p>
+                <p>You can skip this step and add collaborators later.</p>
               </div>
             </div>
           </motion.div>

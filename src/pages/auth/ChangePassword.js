@@ -5,6 +5,7 @@ import { Lock, Eye, EyeOff, ArrowRight, CheckCircle } from 'lucide-react'
 import { Button } from '../../components/ui/button'
 import { Input } from '../../components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card'
+import { PageContainer } from '../../components/ui/page-container'
 import { useAuth } from '../../contexts/AuthContext'
 
 export default function ChangePassword() {
@@ -99,12 +100,7 @@ export default function ChangePassword() {
   }
 
   return (
-    <div className="container max-w-2xl mx-auto py-8 px-4">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
+    <PageContainer maxWidth="max-w-2xl">
         <Card className="shadow-md">
           <CardHeader>
             <CardTitle className="text-2xl font-bold">Change Password</CardTitle>
@@ -239,7 +235,6 @@ export default function ChangePassword() {
             </form>
           </CardContent>
         </Card>
-      </motion.div>
-    </div>
+    </PageContainer>
   )
 }

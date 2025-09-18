@@ -6,6 +6,7 @@ import { Clock, Phone, ArrowRight, Calendar, CheckCircle, MapPin } from 'lucide-
 import { Button } from '../../components/ui/button'
 import { Input } from '../../components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card'
+import { PageContainer } from '../../components/ui/page-container'
 import { useAuth } from '../../contexts/AuthContext'
 import { bookingAPI, moveAPI } from '../../lib/api'
 
@@ -383,12 +384,7 @@ export default function BookTime() {
   const slots = availableSlots.length > 0 ? availableSlots : generateMockTimeSlots()
 
   return (
-    <div className="container max-w-3xl mx-auto py-8 px-4">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
+    <PageContainer maxWidth="max-w-3xl">
         <Card className="shadow-md">
           <CardHeader>
             
@@ -752,7 +748,6 @@ export default function BookTime() {
             )}
           </CardContent>
         </Card>
-      </motion.div>
-    </div>
+    </PageContainer>
   )
 }

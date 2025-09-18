@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
 import { authAPI, getAccessToken, setTokens, clearTokens } from '../lib/api'
-import { showSuccess, showError, showWarning } from '../lib/snackbar'
 
 const AuthContext = createContext()
 
@@ -153,6 +152,20 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error('Token refresh error:', error)
       return false
+    }
+  }
+
+  const refreshUserProfile = async () => {
+    try {
+      const result = await authAPI.getProfile()
+      if (result.success) {
+        setUser(result.data)
+        return result.data
+      }
+      return null
+    } catch (error) {
+      console.error('Profile refresh error:', error)
+      return null
     }
   }
 
@@ -309,6 +322,7 @@ export const AuthProvider = ({ children }) => {
     register,
     logout,
     refreshToken,
+    refreshUserProfile,
     loading,
     updateUserData,
     updateUserAvatar,

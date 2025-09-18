@@ -40,12 +40,16 @@ import Checklist from "./pages/move/Checklist";
 import Tips from "./pages/move/Tips";
 import Inventory from "./pages/inventory/Inventory";
 import MyMove from "./pages/move/MyMove";
+import MoveDashboard from "./pages/move/MoveDashboard";
 import BookTime from "./pages/move/BookTime";
 import Profile from "./pages/Profile";
 import Partners from "./pages/Partners";
 import UserMoves from "./pages/move/UserMoves";
 import EditMove from "./pages/move/EditMove";
 import MyBookings from "./pages/move/MyBookings";
+import Pricing from "./pages/Pricing";
+import TaskManager from "./pages/tasks/TaskManager";
+import ServiceBooking from "./pages/services/ServiceBooking";
 
 // Landing Page Component
 function LandingPage() {
@@ -106,6 +110,7 @@ function App() {
               <Route path="/verify-email" element={<VerifyEmail />} />
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
               <Route path="/terms-of-service" element={<TermsOfService />} />
+              <Route path="/pricing" element={<Pricing />} />
 
               {/* Protected Routes with App Layout */}
               <Route
@@ -154,6 +159,16 @@ function App() {
                   <ProtectedRoute>
                     <AppLayout>
                       <UserMoves />
+                    </AppLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/move/dashboard/:moveId"
+                element={
+                  <ProtectedRoute>
+                    <AppLayout>
+                      <MoveDashboard />
                     </AppLayout>
                   </ProtectedRoute>
                 }
@@ -224,6 +239,26 @@ function App() {
                   <ProtectedRoute>
                     <AppLayout>
                       <Profile />
+                    </AppLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/tasks"
+                element={
+                  <ProtectedRoute>
+                    <AppLayout>
+                      <TaskManager />
+                    </AppLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/services"
+                element={
+                  <ProtectedRoute>
+                    <AppLayout>
+                      <ServiceBooking />
                     </AppLayout>
                   </ProtectedRoute>
                 }
