@@ -95,9 +95,9 @@ export default function CreateMove() {
       // Complete the wizard
       console.log("Creating move project:", formData);
       alert(
-        "🎉 Your move project has been created! Redirecting to your timeline..."
+        "🎉 Your move project has been created! Redirecting to booking page..."
       );
-      window.location.href = "/timeline";
+      window.location.href = "/book-time";
     }
   };
 

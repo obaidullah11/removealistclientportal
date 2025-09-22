@@ -233,9 +233,9 @@ export default function MyMove() {
           sessionStorage.setItem("currentMoveId", response.data.id);
         }
 
-        // Redirect to dashboard after a short delay
+        // Redirect to booking page after a short delay
         setTimeout(() => {
-          window.location.href = `/move/dashboard/${response.data.id}`;
+          window.location.href = `/book-time?moveId=${response.data.id}`;
         }, 2000);
       } else {
         showError(

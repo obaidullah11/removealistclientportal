@@ -48,7 +48,7 @@ export function Modal({ isOpen, onClose, title, children, footer }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
       <div
         ref={modalRef}
-        className="bg-white rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-hidden flex flex-col"
+        className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col"
         role="dialog"
         aria-modal="true"
       >

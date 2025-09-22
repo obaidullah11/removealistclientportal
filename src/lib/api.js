@@ -1,5 +1,6 @@
 // Centralized API service for Django backend integration
 import config from "../config/environment";
+import { showError } from "./snackbar";
 
 // Environment configuration
 const API_BASE_URL = config.API_BASE_URL;
@@ -14,6 +15,64 @@ const setTokens = (accessToken, refreshToken) => {
 const clearTokens = () => {
   localStorage.removeItem("accessToken");
   localStorage.removeItem("refreshToken");
+};
+
+// Function to detect token expiration errors
+const isTokenExpiredError = (errors) => {
+  console.log('Checking token expiration for errors:', errors);
+  
+  if (!errors || typeof errors !== 'object') return false;
+  
+  // Check for the specific token_not_valid error format
+  if (errors.code === "token_not_valid" || errors.detail === "Given token not valid for any token type") {
+    console.log('Token expiration detected!');
+    return true;
+  }
+  
+  // Check for messages array with token expiration info
+  if (errors.messages && Array.isArray(errors.messages)) {
+    const hasExpiredToken = errors.messages.some(msg => 
+      msg.message === "Token is invalid or expired" || 
+      msg.token_type === "access"
+    );
+    if (hasExpiredToken) {
+      console.log('Token expiration detected in messages!');
+      return true;
+    }
+  }
+  
+  return false;
+};
+
+// Alternative function to check the entire response for token expiration
+const isTokenExpiredResponse = (responseData) => {
+  console.log('Checking full response for token expiration:', responseData);
+  
+  // Check if the response itself indicates token expiration
+  if (responseData && responseData.errors) {
+    return isTokenExpiredError(responseData.errors);
+  }
+  
+  // Check if the response message indicates authentication issues
+  if (responseData && responseData.message === "Authentication required") {
+    return true;
+  }
+  
+  return false;
+};
+
+// Handle session expiry
+const handleSessionExpiry = () => {
+  // Show popup notification
+  showError("Session Expired", "Your session has expired. Please login again.");
+  
+  // Clear tokens from localStorage
+  clearTokens();
+  
+  // Navigate to login page after a short delay to allow user to see the message
+  setTimeout(() => {
+    window.location.href = "/login";
+  }, 2000);
 };
 
 // Axios-like fetch wrapper with automatic token management
@@ -46,6 +105,18 @@ export const apiCall = async (endpoint, options = {}) => {
 
     // Handle token refresh for 401 errors
     if (response.status === 401 && token && endpoint !== "/auth/refresh/") {
+      // Check if this is a token expiration error before attempting refresh
+      if (isTokenExpiredError(data.errors) || isTokenExpiredResponse(data)) {
+        handleSessionExpiry();
+        return {
+          success: false,
+          message: "Session expired. Please login again.",
+          errors: data.errors || {},
+          status: response.status,
+          data: data.data || {},
+        };
+      }
+      
       const refreshResult = await refreshAccessToken();
       if (refreshResult.success) {
         // Retry the original request with new token
@@ -63,6 +134,18 @@ export const apiCall = async (endpoint, options = {}) => {
         const retryData = await retryResponse.json();
 
         if (!retryResponse.ok) {
+          // Check for token expiration errors in retry response
+          if (isTokenExpiredError(retryData.errors) || isTokenExpiredResponse(retryData)) {
+            handleSessionExpiry();
+            return {
+              success: false,
+              message: "Session expired. Please login again.",
+              errors: retryData.errors || {},
+              status: retryResponse.status,
+              data: retryData.data || {},
+            };
+          }
+          
           return {
             success: false,
             message: retryData.message || "API request failed",
@@ -79,9 +162,8 @@ export const apiCall = async (endpoint, options = {}) => {
           status: retryResponse.status,
         };
       } else {
-        // Refresh failed, clear tokens and redirect to login
-        clearTokens();
-        window.location.href = "/login";
+        // Refresh failed, handle session expiry
+        handleSessionExpiry();
         return {
           success: false,
           message: "Session expired. Please login again.",
@@ -93,6 +175,18 @@ export const apiCall = async (endpoint, options = {}) => {
 
     // Even if response is not ok, return the data with success: false
     if (!response.ok) {
+      // Check for token expiration errors
+      if (isTokenExpiredError(data.errors) || isTokenExpiredResponse(data)) {
+        handleSessionExpiry();
+        return {
+          success: false,
+          message: "Session expired. Please login again.",
+          errors: data.errors || {},
+          status: response.status,
+          data: data.data || {},
+        };
+      }
+      
       return {
         success: false,
         message: data.message || "API request failed",
@@ -318,6 +412,18 @@ export const moveAPI = {
       method: "POST",
       body: JSON.stringify(collaboratorData),
     }),
+
+  acceptInvitation: (invitationToken) =>
+    apiCall("/move/collaborators/accept/", {
+      method: "POST",
+      body: JSON.stringify({ invitation_token: invitationToken }),
+    }),
+
+  getInvitationDetails: (invitationToken) =>
+    apiCall(`/move/collaborators/invitation/${invitationToken}/`),
+
+  getCollaboratorMoves: () =>
+    apiCall("/move/collaborators/my-moves/"),
 
   getCollaborators: (moveId) => 
     apiCall(`/move/collaborators/${moveId}/`),
@@ -703,6 +809,29 @@ export const enhancedInventoryAPI = {
   deleteStorageItem: (itemId) =>
     apiCall(`/inventory/storage-items/${itemId}/`, {
       method: "DELETE",
+    }),
+
+  // Export and Share
+  exportInventoryPDF: (moveId) => {
+    return fetch(`${API_BASE_URL}/inventory/export/pdf/?move_id=${moveId}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${getAccessToken()}`,
+      },
+    });
+  },
+  exportInventoryExcel: (moveId) => {
+    return fetch(`${API_BASE_URL}/inventory/export/excel/?move_id=${moveId}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${getAccessToken()}`,
+      },
+    });
+  },
+  shareInventory: (shareData) =>
+    apiCall("/inventory/share/", {
+      method: "POST",
+      body: JSON.stringify(shareData),
     }),
 };
 

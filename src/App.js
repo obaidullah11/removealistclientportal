@@ -47,6 +47,7 @@ import Partners from "./pages/Partners";
 import UserMoves from "./pages/move/UserMoves";
 import EditMove from "./pages/move/EditMove";
 import MyBookings from "./pages/move/MyBookings";
+import AcceptInvitation from "./pages/move/AcceptInvitation";
 import Pricing from "./pages/Pricing";
 import TaskManager from "./pages/tasks/TaskManager";
 import ServiceBooking from "./pages/services/ServiceBooking";
@@ -260,6 +261,14 @@ function App() {
                     <AppLayout>
                       <ServiceBooking />
                     </AppLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/accept-invitation"
+                element={
+                  <ProtectedRoute>
+                    <AcceptInvitation />
                   </ProtectedRoute>
                 }
               />

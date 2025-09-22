@@ -20,32 +20,33 @@ export default function VerifyEmail() {
   const [error, setError] = useState('')
   const [resending, setResending] = useState(false)
   const [resendSuccess, setResendSuccess] = useState(false)
-  const [hasAttemptedVerification, setHasAttemptedVerification] = useState(false) // Add this state
+  const [hasAttemptedVerification, setHasAttemptedVerification] = useState(false)
 
   useEffect(() => {
-    // Check for token in URL query params
     const params = new URLSearchParams(location.search)
     const tokenParam = params.get('token')
     const emailParam = params.get('email')
     
-    if (tokenParam && !hasAttemptedVerification) { // Add this check
+    if (tokenParam) {
       setToken(tokenParam)
-      setHasAttemptedVerification(true) // Mark that we've attempted verification
-      handleVerify(tokenParam)
+      
+      // Only auto-verify if we haven't attempted verification yet
+      if (!hasAttemptedVerification) {
+        setHasAttemptedVerification(true)
+        
+        // Add a small delay to ensure state is set
+        setTimeout(() => {
+          handleVerify(tokenParam)
+        }, 100)
+      }
     }
     
-    // Set email from URL param or auth context if available
     if (emailParam) {
       setEmail(emailParam)
-    } else if (emailVerificationStatus.pending) {
+    } else if (emailVerificationStatus && emailVerificationStatus.pending) {
       setEmail(emailVerificationStatus.email)
     }
-    
-    // If no token but we have email, show resend option
-    if (!tokenParam && emailParam) {
-      setEmail(emailParam)
-    }
-  }, [location.search, emailVerificationStatus, hasAttemptedVerification]) // Add hasAttemptedVerification to dependencies
+  }, [location.search, emailVerificationStatus, hasAttemptedVerification])
 
   const handleVerify = async (tokenToVerify) => {
     setVerifying(true)
@@ -63,31 +64,10 @@ export default function VerifyEmail() {
           navigate('/move')
         }, 3000)
       } else {
-        // Check if the error indicates the token is already used
-        const errorMessage = result.message || '';
-        const nonFieldErrors = result.errors?.non_field_errors || [];
-        const hasAlreadyUsedError = errorMessage.includes('already been used') || 
-                                  errorMessage.includes('has already been used') ||
-                                  nonFieldErrors.some(err => err.includes('already been used'));
-        
-        if (hasAlreadyUsedError) {
-          setVerified(true)
-          showSuccess('Email already verified! Redirecting to dashboard...')
-          setTimeout(() => {
-            navigate('/move')
-          }, 2000)
-        } else if (errorMessage.includes('expired') || nonFieldErrors.some(err => err.includes('expired'))) {
-          setError('This verification link has expired. Please request a new verification email.')
-          showError('This verification link has expired. Please request a new verification email.')
-        } else if (errorMessage.includes('Invalid') || nonFieldErrors.some(err => err.includes('Invalid'))) {
-          setError('This verification link is invalid. Please check your email for the correct link.')
-          showError('This verification link is invalid. Please check your email for the correct link.')
-        } else {
-          // Show the first non-field error or the main message
-          const displayError = nonFieldErrors.length > 0 ? nonFieldErrors[0] : (result.message || 'Failed to verify email. Please try again.')
-          setError(displayError)
-          showError(displayError)
-        }
+        // Handle error cases
+        const errorMessage = result.message || 'Verification failed'
+        setError(errorMessage)
+        showError(errorMessage)
       }
     } catch (error) {
       console.error('Email verification error:', error)
@@ -97,7 +77,7 @@ export default function VerifyEmail() {
       setVerifying(false)
     }
   }
-
+  
   const handleResend = async (e) => {
     e.preventDefault()
     
@@ -108,6 +88,7 @@ export default function VerifyEmail() {
     
     setResending(true)
     setError('')
+    setResendSuccess(false)
     
     try {
       const result = await resendVerificationEmail(email)
@@ -116,13 +97,14 @@ export default function VerifyEmail() {
         setResendSuccess(true)
         showSuccess('Verification email sent! Please check your inbox.')
       } else {
-        setError(result.message || 'Failed to resend verification email.')
-        showError(result.message || 'Failed to resend verification email.')
+        const errorMsg = result.message || 'Failed to send verification email'
+        setError(errorMsg)
+        showError(errorMsg)
       }
     } catch (error) {
-      console.error('Resend verification error:', error)
-      setError('An unexpected error occurred. Please try again.')
-      showError('An unexpected error occurred. Please try again.')
+      console.error('Resend email error:', error)
+      setError('Failed to send verification email. Please try again.')
+      showError('Failed to send verification email. Please try again.')
     } finally {
       setResending(false)
     }
@@ -130,207 +112,128 @@ export default function VerifyEmail() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-md"
+      >
         {/* Logo */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-2"
-        >
+        <div className="text-center mb-2">
           <Link to="/" className="inline-flex items-center space-x-3">
             <img src="/images/logo.png" alt="logo" className="w-25 h-12" />
           </Link>
-        </motion.div>
+        </div>
+        
+        <Card className="shadow-2xl border-0">
+          <CardHeader className="text-center pb-2">
+            <CardTitle className="text-2xl font-bold">Email Verification</CardTitle>
+            <CardDescription className="text-base">
+              {verifying ? 'Verifying your email...' : 
+               verified ? 'Email verified successfully!' : 
+               token ? 'Verification failed' :
+               'Verify your email to continue'}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="pt-6">
+            {/* Error Message */}
+            {error && (
+              <div className="mb-6 p-3 bg-red-50 border border-red-200 rounded-md">
+                <p className="text-sm text-red-600">{error}</p>
+              </div>
+            )}
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <Card className="shadow-2xl border-0">
-            <CardHeader className="text-center pb-2">
-              <CardTitle className="text-2xl font-bold">Email Verification</CardTitle>
-              <CardDescription className="text-base">
-                {verifying ? 'Verifying your email...' : 
-                 verified ? 'Email verified successfully!' : 
-                 token ? 'Verification failed' :
-                 'Verify your email to continue'}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="pt-6">
-              {/* Error Message */}
-              {error && (
-                <div className="mb-6 p-3 bg-red-50 border border-red-200 rounded-md">
-                  <p className="text-sm text-red-600">{error}</p>
+            {/* Verifying State */}
+            {verifying && (
+              <div className="text-center py-8">
+                <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary-600" />
+                <p className="mt-4 text-gray-700">Verifying your email address...</p>
+              </div>
+            )}
+
+            {/* Verified State */}
+            {verified && (
+              <div className="text-center py-6 space-y-6">
+                <div className="flex justify-center">
+                  <CheckCircle className="h-16 w-16 text-green-500" />
                 </div>
-              )}
-
-              {/* Verifying State */}
-              {verifying && (
-                <div className="text-center py-8">
-                  <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary-600" />
-                  <p className="mt-4 text-gray-700">Verifying your email address...</p>
+                
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-800">Verification Complete!</h3>
+                  <p className="text-gray-600 mt-2">
+                    Your email has been verified successfully. You will be redirected to the dashboard shortly.
+                  </p>
                 </div>
-              )}
+                
+                <Link to="/move" className="block">
+                  <Button 
+                    className="w-full h-12 text-base font-semibold bg-primary-600 hover:bg-primary-700 text-white"
+                  >
+                    Continue to Dashboard
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </Link>
+              </div>
+            )}
 
-              {/* Verified State */}
-              {verified && (
-                <div className="text-center py-6 space-y-6">
-                  <div className="flex justify-center">
-                    <CheckCircle className="h-16 w-16 text-green-500" />
+            {/* Default State - Show resend form */}
+            {!verifying && !verified && (
+              <div className="space-y-6">
+                <div className="text-center">
+                  <div className="flex justify-center mb-4">
+                    <Mail className="h-12 w-12 text-primary-600" />
                   </div>
-                  
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-800">Verification Complete!</h3>
-                    <p className="text-gray-600 mt-2">
-                      Your email has been verified successfully. You will be redirected to the dashboard shortly.
-                    </p>
+                  <p className="text-gray-700 mb-4">
+                    Please check your email for a verification link, or enter your email below to resend the verification.
+                  </p>
+                </div>
+
+                <form onSubmit={handleResend} className="space-y-4">
+                  <div className="space-y-2">
+                    <label htmlFor="email" className="text-sm font-semibold text-gray-700">Email</label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+                      <Input
+                        id="email"
+                        type="email"
+                        placeholder="Enter your email"
+                        className="pl-11 h-12"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                        disabled={resending}
+                      />
+                    </div>
                   </div>
-                  
-                  <Link to="/move" className="block">
-                    <Button 
-                      className="w-full h-12 text-base font-semibold bg-primary-600 hover:bg-primary-700 text-white"
-                    >
-                      Continue to Dashboard
-                      <ArrowRight className="ml-2 h-5 w-5" />
-                    </Button>
+
+                  {resendSuccess && (
+                    <div className="p-3 bg-green-50 border border-green-200 rounded-md">
+                      <p className="text-sm text-green-600">
+                        Verification email sent! Please check your inbox and spam folder.
+                      </p>
+                    </div>
+                  )}
+
+                  <Button 
+                    type="submit" 
+                    className="w-full h-12 text-base font-semibold bg-primary-600 hover:bg-primary-700 text-white"
+                    disabled={resending}
+                  >
+                    {resending ? 'Sending...' : 'Send Verification Email'}
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </form>
+
+                <div className="text-center">
+                  <Link to="/login" className="text-sm text-primary-600 hover:text-primary-700 font-semibold">
+                    Back to login
                   </Link>
                 </div>
-              )}
-
-              {/* Failed Verification State */}
-              {!verifying && !verified && token && (
-                <div className="text-center py-6 space-y-6">
-                  <div className="flex justify-center">
-                    <AlertCircle className="h-16 w-16 text-red-500" />
-                  </div>
-                  
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-800">Verification Failed</h3>
-                    <p className="text-gray-600 mt-2">
-                      The verification link is invalid or has expired. Please request a new verification email.
-                    </p>
-                  </div>
-                  
-                  <form onSubmit={handleResend} className="space-y-4">
-                    <div className="space-y-2">
-                      <label className="text-sm font-semibold text-gray-700">Email</label>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-                        <Input
-                          type="email"
-                          placeholder="Enter your email"
-                          className="pl-11 h-12"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          required
-                          disabled={resending}
-                        />
-                      </div>
-                    </div>
-                    
-                    <Button 
-                      type="submit" 
-                      className="w-full h-12 text-base font-semibold bg-primary-600 hover:bg-primary-700 text-white"
-                      disabled={resending}
-                    >
-                      {resending ? 'Sending...' : 'Resend Verification Email'}
-                      <ArrowRight className="ml-2 h-5 w-5" />
-                    </Button>
-                  </form>
-                  
-                  <div className="text-center">
-                    <Link to="/login" className="text-sm text-primary-600 hover:text-primary-700 font-semibold">
-                      Back to login
-                    </Link>
-                  </div>
-                </div>
-              )}
-
-              {/* Initial State - No Token */}
-              {!verifying && !verified && !token && (
-                <>
-                  {resendSuccess ? (
-                    <div className="text-center py-6 space-y-6">
-                      <div className="flex justify-center">
-                        <CheckCircle className="h-16 w-16 text-green-500" />
-                      </div>
-                      
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-800">Verification Email Sent!</h3>
-                        <p className="text-gray-600 mt-2">
-                          We've sent a verification link to <span className="font-semibold">{email}</span>.
-                          Please check your inbox and click the link to verify your email.
-                        </p>
-                      </div>
-                      
-                      <div className="space-y-3">
-                        <Button 
-                          onClick={() => setResendSuccess(false)}
-                          className="w-full h-12 text-base font-semibold"
-                          variant="outline"
-                        >
-                          Resend Again
-                        </Button>
-                        
-                        <Link to="/login" className="block">
-                          <Button 
-                            className="w-full h-12 text-base font-semibold bg-primary-600 hover:bg-primary-700 text-white"
-                          >
-                            Back to Login
-                            <ArrowRight className="ml-2 h-5 w-5" />
-                          </Button>
-                        </Link>
-                      </div>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-md">
-                        <p className="text-sm text-blue-700">
-                          Please check your email for a verification link. If you haven't received it, you can request a new one below.
-                        </p>
-                      </div>
-                      
-                      <form onSubmit={handleResend} className="space-y-6">
-                        <div className="space-y-2">
-                          <label className="text-sm font-semibold text-gray-700">Email</label>
-                          <div className="relative">
-                            <Mail className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-                            <Input
-                              type="email"
-                              placeholder="Enter your email"
-                              className="pl-11 h-12"
-                              value={email}
-                              onChange={(e) => setEmail(e.target.value)}
-                              required
-                              disabled={resending}
-                            />
-                          </div>
-                        </div>
-                        
-                        <Button 
-                          type="submit" 
-                          className="w-full h-12 text-base font-semibold bg-primary-600 hover:bg-primary-700 text-white"
-                          disabled={resending}
-                        >
-                          {resending ? 'Sending...' : 'Send Verification Email'}
-                          <ArrowRight className="ml-2 h-5 w-5" />
-                        </Button>
-                        
-                        <div className="text-center">
-                          <Link to="/login" className="text-sm text-primary-600 hover:text-primary-700 font-semibold">
-                            Back to login
-                          </Link>
-                        </div>
-                      </form>
-                    </>
-                  )}
-                </>
-              )}
-            </CardContent>
-          </Card>
-        </motion.div>
-      </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </motion.div>
     </div>
   )
 }
