@@ -23,7 +23,7 @@ import { Progress } from "../../components/ui/progress";
 import { useAuth } from "../../contexts/AuthContext";
 import { moveAPI } from "../../lib/api";
 import { showSuccess, showError } from "../../lib/snackbar";
-import { validateMoveDate, validateAddress } from "../../lib/validation";
+import { validateMoveDate, validateAddress, validatePropertyUrl } from "../../lib/validation";
 import PlacesAutocomplete from "../../components/PlacesAutocomplete";
 
 
@@ -134,6 +134,20 @@ export default function MyMove() {
           showError("Please select your new property type");
           return false;
         }
+        
+        // Validate property URLs if provided
+        const currentPropertyUrlError = validatePropertyUrl(formData.currentPropertyUrl);
+        if (currentPropertyUrlError) {
+          showError(`Current property URL: ${currentPropertyUrlError}`);
+          return false;
+        }
+        
+        const newPropertyUrlError = validatePropertyUrl(formData.newPropertyUrl);
+        if (newPropertyUrlError) {
+          showError(`New property URL: ${newPropertyUrlError}`);
+          return false;
+        }
+        
         // if (!formData.currentPropertySize) {
         //   showError("Please select your current property size");
         //   return false;

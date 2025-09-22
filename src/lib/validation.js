@@ -69,6 +69,10 @@ export const validateField = (name, value, additionalData = {}) => {
     case 'first_name':
     case 'last_name':
       return validateName(value)
+    case 'currentPropertyUrl':
+    case 'newPropertyUrl':
+    case 'property_url':
+      return validatePropertyUrl(value)
     default:
       return null
   }
@@ -123,6 +127,25 @@ export const validatePropertySize = (size) => {
 export const validateAddress = (address) => {
   if (!address) return 'Address is required'
   if (address.trim().length < 10) return 'Please enter a complete address'
+  return null
+}
+
+// Property URL validation - only accept URLs containing .com or .au
+export const validatePropertyUrl = (url) => {
+  if (!url) return null // URL is optional
+  
+  // Basic URL format validation
+  try {
+    new URL(url)
+  } catch {
+    return 'Please enter a valid URL'
+  }
+  
+  // Check if URL contains .com or .au
+  if (!url.includes('.com') && !url.includes('.au')) {
+    return 'Property URL must contain .com or .au domain'
+  }
+  
   return null
 }
 

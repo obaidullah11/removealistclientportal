@@ -45,7 +45,7 @@ export default function Profile() {
           
           setUser(userData)
           setFormData({
-            name: userData.name || '',
+            name: `${userData.first_name || ''} ${userData.last_name || ''}`.trim(),
             email: userData.email || '',
             phone: userData.phone_number || ''
           })
@@ -69,9 +69,15 @@ export default function Profile() {
       setIsSaving(true)
       setErrors({})
       
-      // Map frontend phone field to backend phone_number field
+      // Map frontend fields to backend fields
+      const nameParts = formData.name.trim().split(' ')
+      const firstName = nameParts[0] || ''
+      const lastName = nameParts.slice(1).join(' ') || ''
+      
       const profileData = {
-        ...formData,
+        first_name: firstName,
+        last_name: lastName,
+        email: formData.email,
         phone_number: formData.phone
       }
       
@@ -86,7 +92,7 @@ export default function Profile() {
         setErrors({ profile: response.message || 'Failed to update profile' })
         // Reset form data to current user data
         setFormData({
-          name: user.name || '',
+          name: `${user.first_name || ''} ${user.last_name || ''}`.trim(),
           email: user.email || '',
           phone: user.phone_number || ''
         })
@@ -182,7 +188,7 @@ export default function Profile() {
                       />
                     ) : (
                       <span className="text-2xl font-bold text-primary-600">
-                        {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                        {user?.first_name ? user.first_name.charAt(0).toUpperCase() : 'U'}
                       </span>
                     )}
                   </div>
@@ -213,7 +219,7 @@ export default function Profile() {
                   </label>
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-lg font-medium">{user?.name || 'User'}</h3>
+                  <h3 className="text-lg font-medium">{`${user?.first_name || ''} ${user?.last_name || ''}`.trim() || 'User'}</h3>
                   <p className="text-muted-foreground">{user?.email || ''}</p>
                   {user?.phone_number && (
                     <p className="text-sm text-muted-foreground">{user.phone_number}</p>
@@ -259,7 +265,7 @@ export default function Profile() {
                         setIsEditing(false)
                         // Reset form data to current user data
                         setFormData({
-                          name: user?.name || '',
+                          name: `${user?.first_name || ''} ${user?.last_name || ''}`.trim(),
                           email: user?.email || '',
                           phone: user?.phone_number || ''
                         })

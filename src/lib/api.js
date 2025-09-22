@@ -355,10 +355,10 @@ export const authAPI = {
     }),
 
   // Profile
-  getProfile: () => apiCall("/auth/profile/"),
+  getProfile: () => apiCall("/auth/profile/new/"),
 
   updateProfile: (profileData) =>
-    apiCall("/auth/profile/", {
+    apiCall("/auth/profile/new/", {
       method: "PUT",
       body: JSON.stringify(profileData),
     }),
